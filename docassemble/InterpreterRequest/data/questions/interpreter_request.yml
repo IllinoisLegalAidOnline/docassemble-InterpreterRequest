@@ -1,0 +1,802 @@
+metadata:
+  title: Interpreter request
+  short title: Interpreter request
+  comment:  This program will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
+  authors:
+    - Vivian McNaughton
+    - Matt Newsted
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:phone-number-validation.yml
+  - docassemble.ILAO:ilao-interview-framework.yml
+  - docassemble.ILAO:shared-basic-questions.yml
+---
+objects:
+  - user: ALIndividual
+  - other_person: ALIndividual
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+---
+code: |
+  ilao_easy_form_title = "Interpreter request"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/interpreter-request"
+  github_user = 'IllinoisLegalAidOnline'
+  github_repo_name = 'docassemble-InterpreterRequest'
+---
+sections:
+  - section_intro: Start
+  - section_user: Your information
+  - section_someone: "Someone else's information (optional)"
+  - section_case: Case information
+  - section_download: Download
+---
+# interview order block
+mandatory: True
+code: |
+  nav.set_section('section_intro')
+  sees_nav_bar
+  set_progress(5)
+  how_to_use
+  accept_terms
+  who_qualifies
+  required_info
+  nav.set_section('section_user')
+  set_progress(20)
+  user.name.first
+  user.address.address
+  user.phone_number
+  if user.include_email_address == True:
+    user.email
+  set_progress(40)
+  nav.set_section('section_someone')
+  if who_needs == "Someone else":
+    other_person.name.first
+    other_person.address.address
+    other_person.phone_number
+    if other_person.include_email_address == True:
+      other_person.email
+  nav.set_section('section_case')
+  set_progress(60)
+  if role_in_case != "juror" and role_in_case != "spectator":
+    language_needed
+  if role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim":
+    court_date
+  set_progress(80)
+  case_number
+  e_signature
+  which_email
+  nav.set_section('section_download')
+  get_docs_screen
+---
+id: welcome
+question: |
+  Interpreter request
+subquestion: |
+  Welcome to Illinois Legal Aid Online's Interpreter Request program.
+
+  This program will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
+
+  The form you create with this program can only be used in Illinois.
+field: sees_nav_bar
+---
+id: instructions
+continue button field: how_to_use
+question: |
+  Instructions
+subquestion: |
+  You can use this program to create a form requesting a court interpreter.
+
+  Set aside 5 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+
+  Once you complete the program, you can download your form and instructions. You will need to file the form yourself.
+  
+  ${ collapse_template(help_example) }  
+
+  Click on **{green words}** to learn what they mean. Some questions have a question mark in a circle ${ fa_icon("question-circle", color_css="#0DCAF0" ) } that also gives help.
+---
+template: help_example
+
+subject: |
+
+  **You can expand sections like this to show more information.**
+
+content: |  
+
+  This is an example of help. Click again to hide.
+---
+id: accept terms
+question: |
+  Terms of use
+subquestion: |
+  This program does not provide legal advice. It does not take the place of advice from a lawyer.
+
+  Using this program does not create an attorney-client relationship between you and Illinois Legal Aid Online or its employees.
+
+  ${ collapse_template(get_legal_help) }  
+
+fields:
+  - To continue, you must accept the [**terms of use**](https://www.illinoislegalaid.org/about/terms-of-use).: accept
+    datatype: checkboxes
+    none of the above: False
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use.
+continue button field: accept_terms
+---
+template: get_legal_help
+subject: |
+  **What if I need legal advice?**
+content: |  
+  If you have questions or concerns about your legal problem and want legal advice you should talk to a lawyer.
+ 
+  Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
+---
+id: who can request
+question: |
+  Qualifications
+subquestion: |
+  To request an interpreter, you or the person you are helping must be a:
+
+  * Party (a person who brings or defends a lawsuit),
+  * Person who brings or defends a case on behalf of a minor or adult disabled party,
+  * Parent or legal guardian of a minor party or minor victim,
+  * Parent or legal guardian of an adult disabled party,
+  * Witness,
+  * Victim in the case,
+  * Juror (sign language only), or
+  * Spectator (sign language only).
+continue button field: who_qualifies
+---
+id: requirements
+question: |
+  Required information
+subquestion: |
+  To complete this program, you will need to know:
+
+  * The names of all the parties involved in the case, and
+  * The address of the person who needs an interpreter.
+continue button field: required_info
+---
+id: who needs interpreter
+question: |
+  Do you need an interpreter for yourself or someone else?
+field: who_needs
+choices:
+  - Myself
+  - Someone else
+---
+id: user name
+question: |
+  What is your name?
+fields:
+  - First: user.name.first
+  - Middle: user.name.middle
+    required: False
+  - Last: user.name.last
+  - Suffix: user.name.suffix
+    required: False
+    code: name_suffix()
+---
+id: user address
+question: |
+  What is your address?
+fields:
+  - Street address: user.address.address
+    address autocomplete: True
+  - Address line 2: user.address.unit
+    required: False
+  - City: user.address.city
+  - State: user.address.state
+    code: |
+      states_list() 
+  - ZIP code: user.address.zip
+---
+id: user phone number
+question: |
+  What is your phone number?
+fields:
+  - Phone number: user.phone_number
+    datatype: al_international_phone
+---
+id: include email
+question: |
+  Do you have an email address?
+subquestion: |
+  If you have an email address, you must list it so the court can contact you about this request.
+fields:
+  - no label: user.include_email_address
+    datatype: yesnoradio
+---
+id: your email
+question: |
+  What email address do you want to list on your form?
+subquestion: |
+  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
+  
+  Be sure to check this email daily, otherwise you may miss important information about your case.																									
+fields: 
+  - Email: user.email
+    datatype: email
+---
+id: other person name
+question: |
+  Who needs an interpreter?
+fields:
+  - First: other_person.name.first
+  - Middle: other_person.name.middle
+    required: False
+  - Last: other_person.name.last
+  - Suffix: other_person.name.suffix
+    required: False
+    code: name_suffix()
+---
+id: other person address
+question: |
+  What is ${other_person.name.full(middle='full')}'s address?
+fields:
+  - Street address: other_person.address.address
+    address autocomplete: True
+  - Address line 2: other_person.address.unit
+    required: False
+  - City: other_person.address.city
+  - State: other_person.address.state
+    code: |
+      states_list() 
+  - ZIP code: other_person.address.zip
+---
+id: other person phone number
+question: |
+  What is ${other_person.name.full(middle='full')}'s phone number?
+fields:
+  - Phone number: other_person.phone_number
+    datatype: al_international_phone
+---
+id: include email
+question: |
+  Does ${other_person.name.full(middle='full')}'s have an email address?
+subquestion: |
+  If they have an email address, you must list it so the court can contact them about this request.
+fields:
+  - no label: other_person.include_email_address
+    datatype: yesnoradio
+---
+id: your email
+question: |
+  What is ${other_person.name.full(middle='full')}'s email address?
+subquestion: |
+  If they do not want you to enter their personal email address, they can create a new email account to get email about the request.
+  
+  They should check this email daily, otherwise they may miss important information about the request.																									
+fields: 
+  - Email: other_person.email
+    datatype: email
+---
+id: role in case
+question: |
+  % if who_needs == "Myself":
+  What is your role in this case?
+  % else:
+  What is ${other_person.name.full(middle='full')}'s role in this case?
+  % endif
+field: role_in_case
+choices:
+  - Party in the case: party
+  - Person filing on behalf of a minor or disabled adult: behalf
+  - Parent or guardian of a minor child who is a party or victim: minor guardian
+  - Parent or guardian of a disabled adult who is a party or a victim: adult guardian
+  - Witness: witness
+  - Victim: victim
+  - Juror: juror
+    help: |
+      The only interpreter a juror can request is a sign language interpreter.
+  - Spectator: spectator
+    help: |
+      The only interpreter a spectator can request is a sign language interpreter.
+---
+# Not certain about the phrasing of this question, this is just pulled from the A2JAuthor interview.
+id: language
+question: |
+  % if who_needs == "Myself":
+  Which language will you need?
+  % else:
+  Which language will ${other_person.name.full(middle='full')} need?
+  % endif
+subquestion: |
+  If the language you need isn't listed, choose Other at the end of the list. If you choose "Other", you will enter which language you need.
+fields: 
+  - Language: language_needed
+    input type: dropdown
+    choices:
+    - Spanish
+    - Albanian
+    - American Sign Language
+    - Amharic
+    - Arabic
+    - Armenian
+    - Assyrian
+    - Bosnian
+    - Bulgarian
+    - Burmese
+    - Chinese-Mandarin
+    - Chinese-Cantonese
+    - Czech
+    - Dinka
+    - Filipino
+    - French
+    - German
+    - Greek
+    - Gujarati
+    - Haitian Creole
+    - Hindi
+    - Hungarian
+    - Indonesian
+    - Italian
+    - Japanese
+    - Karen
+    - Kirundi
+    - Korean
+    - Kunama
+    - Laotian
+    - Lithuanian
+    - Macedonian
+    - Mongolian
+    - Nepali
+    - Persian
+    - Polish
+    - Portuguese
+    - Punjabi
+    - Romanian
+    - Russian
+    - Serbo-Croatian
+    - Somali
+    - Swahili
+    - Tagalog
+    - Telugu
+    - Thai
+    - Tigrinya
+    - Turkish
+    - Ukranian
+    - Urdu
+    - Vietnamese
+    - Yoruba
+    - Other
+  - Other: other_language
+    show if:
+      variable: language_needed
+      is: "Other"
+---
+id: date and time
+question: |
+  % if who_needs == "Myself":
+  What is the court date and time you will need an interpreter?
+  % else:
+  What is the court date and time ${other_person.name.full(middle='full')} will need an interpreter?
+  % endif
+fields:
+  - Date: court_date
+    datatype: date
+    default: ${ today().format("yyyy-MM-dd") }
+    min: ${ today().format("yyyy-MM-dd") }
+  - Time: court_time
+    datatype: time
+---
+id: case number
+question: |
+  % if who_needs == "Myself":
+  What is your case number?
+  % else:
+  What is ${other_person.name.full(middle='full')}'s case number?
+  % endif
+subquestion: |
+  % if who_needs == "Myself":
+  If you are the plaintiff, the court clerk will give you a number for your case. Otherwise, the case number will appear on the document from the court that told you about the lawsuit).
+  
+  If you do not have a case number yet, leave this blank.
+  % else:
+  If ${other_person.name.full(middle='full')} is the plaintiff, the court clerk will give them a number for your case. Otherwise, the case number will appear on the document from the court that told them about the lawsuit).
+  
+  If they do not have a case number yet, leave this blank.
+  % endif
+fields:
+  - Case number: case_number
+---
+id: signature
+question: |
+  Do you want to add your electronic signature to your form?
+subquestion: |
+  The program will put “/s/ ${user.name.full(middle='full')} ” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
+  
+  Electronic filing, also called e-filing, is required in Illinois, unless you qualify for an exemption. Some courts allow paper filing.
+fields:
+  - "Add electronic signature?": e_signature
+    datatype: yesnoradio
+---
+id: get docs screen
+event: get_docs_screen
+question: |
+  Download
+subquestion: |
+  Your form is ready. View and download your form below. Click **Make changes** to fix any mistakes.
+  
+  Read the instructions to learn what to do next.
+  
+  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+
+  ${ al_user_bundle.download_list_html() }
+ 
+  &nbsp;
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  
+  **Note:** This program does not send your form. You will need to do this yourself.
+
+  Thank you for using ILAO Easy Forms!
+under: |
+  % if not user_logged_in():
+  [${fa_icon("sign-in-alt", color="#0079d0", size="sm")} **Sign-in**](${url_of('login', next=interview_url())}) or [**create**](${url_of('register', next=interview_url())}) an ILAO Easy Form account to save your progress (optional).
+  % endif
+
+ 
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+---
+generic object: ALDocumentBundle
+template: x.send_email_template
+subject: |
+  Interpreter request
+content: |
+  Your forms are attached.
+  
+  Thanks for using ILAO Easy Forms!
+  
+  [**Illinois Legal Aid Online**](https://www.illinoislegalaid.org)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="Download all forms")
+  - al_court_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="Download all forms")
+---
+# Handles which, if any, email address is used in the needer's email address field.
+depends on:
+  - who_needs
+  - user.include_email_address
+  - user.email
+  - other_person.include_email_address
+  - other_person.email
+code: |
+  if who_needs == "Myself":
+    if user.include_email_address == True:
+      which_email = user.email
+    else:
+      which_email = ""
+  else:
+    if other_person.include_email_address == True:
+      which_email = other_person.email
+    else:
+      which_email = ""
+---
+attachment:
+  - name: instructions
+    variable name: instructions[i]
+    filename: intepreter_request_instructions
+    docx template file: interpreter_request_instructions.docx
+---
+attachment:
+  - name: Interpreter request
+    variable name: interpreter_request[i]
+    filename: interpreter_request
+    pdf template file: InterpreterRequest.pdf
+    skip undefined: True
+    editable: False
+    fields:
+      - "needer_name": ${ user.name.full(middle='full') if who_needs == "Myself" else other_person.name.full(middle='full') }
+      - "needer_address": ${ user.address.on_one_line() if who_needs == "Myself" else other_person.address.on_one_line() }
+      - "needer_phone": ${ user.phone_number if who_needs == "Myself" else other_person.phone_number}
+      - "needer_email": ${which_email}
+      - "case_number": ${case_number}
+      - "party": ${ True if role_in_case == "party" else False}
+      - "behalf": S{ True if role_in_case == "behalf" else False}
+      - "minor_guardian": ${ True if role_in_case == "minor guardian" else False}
+      - "adult_guardian": ${ True if role_in_case == "adult guardian" else False}
+      - "witness": ${ True if role_in_case == "witness" else False}
+      - "victim": ${ True if role_in_case == "victim" else False}
+      - "juror": ${ True if role_in_case == "juror" else False}
+      - "spectator": ${ True if role_in_case == "spectator" else False}
+      - "witness_date": ${ court_date if role_in_case == "witness" else ""}
+      - "victim_date": ${ court_date if role_in_case == "victim" else ""}
+      - "juror_date": ${ court_date if role_in_case == "juror" else ""}
+      - "spectator_date": ${ court_time if role_in_case == "spectator" else ""}
+      - "witness_time": ${ court_time if role_in_case == "witness" else ""}
+      - "victim_time": ${ court_time if role_in_case == "victim" else ""}
+      - "juror_time": ${ court_time if role_in_case == "juror" else ""}
+      - "spectator_time": ${ court_time if role_in_case == "spectator" else ""}
+      - "helper_name": ${user.name.full(middle='full') if who_needs == "Someone else" else ""}
+      - "helper_address": ${user.address.on_one_line() if who_needs == "Someone else" else ""}
+      - "helper_phone": ${user.phone_number if who_needs == "Someone else" else ""}
+      - "helper_email": ${user.email if who_needs == "Someone else" and user.include_email_address == True else ""}
+      - "Spanish": ${True if language_needed == "Spanish" else False}
+      - "albanian": ${True if language_needed == "Albanian" else False}
+      - "american_sign_language": ${True if language_needed == "American Sign Language" or role_in_case == "juror" or role_in_case == "spectator" else False}
+      - "amharic": ${True if language_needed == "Amharic" else False}
+      - "arabic": ${True if language_needed == "Arabic" else False}
+      - "armenian": ${True if language_needed == "Armenian" else False}
+      - "assyrian": ${True if language_needed == "Assyrian" else False}
+      - "bosnian": ${True if language_needed == "Bosnian" else False}
+      - "bulgarian": ${True if language_needed == "Bulgarian" else False}
+      - "burmese": ${True if language_needed == "Burmese" else False}
+      - "mandarin": ${True if language_needed == "Chinese-Mandarin" else False}
+      - "cantonese": ${True if language_needed == "Chinese-Cantonese" else False}
+      - "czech": ${True if language_needed == "Czech" else False}
+      - "dinka": ${True if language_needed == "Dinka" else False}
+      - "filipino": ${True if language_needed == "Filipino" else False}
+      - "french": ${True if language_needed == "French" else False}
+      - "german": ${True if language_needed == "German" else False}
+      - "greek": ${True if language_needed == "Greek" else False}
+      - "gujarati": ${True if language_needed == "Gujarati" else False}
+      - "haitian": ${True if language_needed == "Haitian Creole" else False}
+      - "hindi": ${True if language_needed == "Hindi" else False}
+      - "hungarian": ${True if language_needed == "Hungarian" else False}
+      - "indonesian": ${True if language_needed == "Indonesian" else False}
+      - "italian": ${True if language_needed == "Italian" else False}
+      - "japanese": ${True if language_needed == "Japanese" else False}
+      - "karen": ${True if language_needed == "Karen" else False}
+      - "kirundi": ${True if language_needed == "Kirundi" else False}
+      - "korean": ${True if language_needed == "Korean" else False}
+      - "kunama": ${True if language_needed == "Kunama" else False}
+      - "laotian": ${True if language_needed == "Laotian" else False}
+      - "lithuanian": ${True if language_needed == "Lithuanian" else False}
+      - "macedonian": ${True if language_needed == "Macedonian" else False}
+      - "mongolian": ${True if language_needed == "Mongolian" else False}
+      - "nepali": ${True if language_needed == "Nepali" else False}
+      - "persian": ${True if language_needed == "Persian" else False}
+      - "polish": ${True if language_needed == "Polish" else False}  
+      - "portuguese": ${True if language_needed == "Portuguese" else False}
+      - "punjabi": ${True if language_needed == "Punjabi" else False}
+      - "romanian": ${True if language_needed == "Romanian" else False}
+      - "russian": ${True if language_needed == "Russian" else False}
+      - "serbo_croatian": ${True if language_needed == "Serbo-Croatian" else False}
+      - "somali": ${True if language_needed == "Somali" else False}
+      - "swahili": ${True if language_needed == "Swahili" else False}
+      - "tagalog": ${True if language_needed == "Tagalog" else False}
+      - "telugu": ${True if language_needed == "Telugu" else False}
+      - "thai": ${True if language_needed == "Thai" else False}
+      - "tigrinya": ${True if language_needed == "Tigrinya" else False}
+      - "turkish": ${True if language_needed == "Turkish" else False}
+      - "ukranian": ${True if language_needed == "Ukranian" else False}
+      - "urdu": ${True if language_needed == "Urdu" else False}
+      - "vietnamese": ${True if language_needed == "Vietnamese" else False}
+      - "yoruba": ${True if language_needed == "Yoruba" else False}
+      - "other": ${True if language_needed == "Other" else False}
+      - "other_language": ${ other_language if language_needed == "Other" else ""}
+      - "signature_date": ${ today() if e_signature == True else ""}
+      - "e_signature": ${user.name.full(middle='full') if e_signature == True else ""}
+      - "signer_name": ${user.name.full(middle='full')}
+---
+objects:
+  - interpreter_request: ALDocument.using(title="Interpreter request", filename="interpreter_request", enabled=True, has_addendum=False)
+  - instructions: ALDocument.using(title="Instructions", filename="interpreter_request_instructions", enabled=True, has_addendum=False)
+---
+id: review screen
+event: review_answers
+question: |
+  Review screen
+subquestion: |
+  Edit your answers below.
+review: 
+  - Edit: user.name.first
+    button: |
+      **Your name:**
+      ${user.name.full(middle='full')}
+  - Edit: user.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
+  - Edit: user.phone_number
+    button: |
+      **Your phone number:**
+      ${user.phone_number}
+  - Edit: user.include_email_address
+    button: |
+      **Do you want to include your email address?**
+      ${word(yesno(user.include_email_address))}
+  - Edit: user.email
+    button: |
+      **Your email address:**
+      ${user.email}
+    show if: user.include_email_address
+  - Edit: who_needs
+    button: |
+     **Do you need an interpreter for yourself or someone else?**
+     ${who_needs}
+  - Edit: other_person.name.first
+    button: |
+      **Who needs an interpreter?**
+      ${other_person.name.full(middle='full')}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
+    show if: who_needs == "Someone else"
+  - Edit: user.phone_number
+    button: |
+      **${other_person.name.full(middle='full')}'s phone number:**
+      ${other_person.phone_number}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.include_email_address
+    button: |
+      **Does ${other_person.name.full(middle='full')} want to include their email address?**
+      ${word(yesno(other_person.include_email_address))}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.email
+    button: |
+      **${other_person.name.full(middle='full')} email address:**
+      ${user.email}
+    show if: who_needs == "Someone else" and other_person.include_email_address == True
+  - Edit: role_in_case
+    button: |
+      % if who_needs == "Myself":
+      **Your role in the case:**
+      % else:
+      **${other_person.name.full(middle='full')}'s role in the case:**
+      % endif
+      % if role_in_case == "party":
+      Party in the case
+      % elif role_in_case == "behalf":
+      Person filing on behalf of a minor or disabled adult
+      % elif role_in_case == "minor guardian":
+      Parent or guardian of a minor child who is a party or victim
+      % elif role_in_case == "adult guardian":
+      Parent or guardian of a disabled adult who is a party or a victim
+      % elif role_in_case == "witness":
+      Witness
+      % elif role_in_case == "victim":
+      Victim
+      % elif role_in_case == "juror":
+      Juror (American Sign Language only)
+      % elif role_in_case == "spectator":
+      Spectator (American Sign Language only)
+      % endif
+  - Edit: language_needed
+    button: |
+      **Language needed:**
+      ${language_needed}
+    show if: role_in_case != "juror" and role_in_case != "spectator"
+  - Edit: court_date
+    button: |
+      **Date and time of court appearance:**
+      ${court_date}, ${court_time}
+    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
+  - Edit: case_number
+    button: |
+      **Case number:**
+      ${case_number}
+  - Edit: e_signature
+    button: |
+      **Do you want to include an e-signature?**
+      ${word(yesno(e_signature))}
+---
+id: review user
+event: section_user
+question: |
+  Your information
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: user.name.first
+    button: |
+      **Your name:**
+      ${user.name.full(middle='full')}
+  - Edit: user.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
+  - Edit: user.phone_number
+    button: |
+      **Your phone number:**
+      ${user.phone_number}
+  - Edit: user.include_email_address
+    button: |
+      **Do you want to include your email address?**
+      ${word(yesno(user.include_email_address))}
+  - Edit: user.email
+    button: |
+      **Your email address:**
+      ${user.email}
+    show if: user.include_email_address
+  - Edit: who_needs
+    button: |
+     **Do you need an interpreter for yourself or someone else?**
+     ${who_needs}
+  - Edit: e_signature
+    button: |
+      **Do you want to include an e-signature?**
+      ${word(yesno(e_signature))}
+---
+id: review someone
+event: section_someone
+question: |
+  Someone else's information
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: who_needs
+    button: |
+     **Do you need an interpreter for yourself or someone else?**
+     ${who_needs}
+  - Edit: other_person.name.first
+    button: |
+      **Who needs an interpreter?**
+      ${other_person.name.full(middle='full')}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
+    show if: who_needs == "Someone else"
+  - Edit: user.phone_number
+    button: |
+      **${other_person.name.full(middle='full')}'s phone number:**
+      ${other_person.phone_number}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.include_email_address
+    button: |
+      **Does ${other_person.name.full(middle='full')} want to include their email address?**
+      ${word(yesno(other_person.include_email_address))}
+    show if: who_needs == "Someone else"
+  - Edit: other_person.email
+    button: |
+      **${other_person.name.full(middle='full')} email address:**
+      ${user.email}
+    show if: who_needs == "Someone else" and other_person.include_email_address == True
+---
+id: review case
+event: section_case
+question: |
+  Case information
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: role_in_case
+    button: |
+      % if who_needs == "Myself":
+      **Your role in the case:**
+      % else:
+      **${other_person.name.full(middle='full')}'s role in the case:**
+      % endif
+      % if role_in_case == "party":
+      Party in the case
+      % elif role_in_case == "behalf":
+      Person filing on behalf of a minor or disabled adult
+      % elif role_in_case == "minor guardian":
+      Parent or guardian of a minor child who is a party or victim
+      % elif role_in_case == "adult guardian":
+      Parent or guardian of a disabled adult who is a party or a victim
+      % elif role_in_case == "witness":
+      Witness
+      % elif role_in_case == "victim":
+      Victim
+      % elif role_in_case == "juror":
+      Juror (American Sign Language only)
+      % elif role_in_case == "spectator":
+      Spectator (American Sign Language only)
+      % endif
+  - Edit: language_needed
+    button: |
+      **Language needed:**
+      ${language_needed}
+    show if: role_in_case != "juror" and role_in_case != "spectator"
+  - Edit: court_date
+    button: |
+      **Date and time of court appearance:**
+      ${court_date}, ${court_time}
+    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
+  - Edit: case_number
+    button: |
+      **Case number:**
+      ${case_number}
+  - Edit: e_signature
+    button: |
+      **Do you want to include an e-signature?**
+      ${word(yesno(e_signature))}
