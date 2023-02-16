@@ -15,7 +15,6 @@ include:
 objects:
   - user: ALIndividual
   - other_person: ALIndividual
-  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
   ilao_easy_form_title = "Interpreter request"
@@ -25,8 +24,8 @@ code: |
 ---
 sections:
   - section_intro: Start
-  - section_user: Your information
-  - section_someone: "Someone else's information (optional)"
+  - section_user: About person making request
+  - section_someone: "About person needing interpreter (optional)"
   - section_case: Case information
   - section_download: Download
 ---
@@ -39,15 +38,14 @@ code: |
   how_to_use
   accept_terms
   who_qualifies
-  required_info
   nav.set_section('section_user')
   set_progress(20)
   user.name.first
   user.address.address
   user.phone_number
-  if user.include_email_address == True:
-    user.email
+  user.email
   set_progress(40)
+  who_needs
   nav.set_section('section_someone')
   if who_needs == "Someone else":
     other_person.name.first
@@ -61,6 +59,8 @@ code: |
     language_needed
   if role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim":
     court_date
+  else:
+    all_court_dates
   set_progress(80)
   case_number
   e_signature
@@ -72,7 +72,7 @@ id: welcome
 question: |
   Interpreter request
 subquestion: |
-  Welcome to Illinois Legal Aid Online's Interpreter Request program.
+  Welcome to Illinois Legal Aid Online's **Interpreter Request** program.
 
   This program will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
 
@@ -86,7 +86,7 @@ question: |
 subquestion: |
   You can use this program to create a form requesting a court interpreter.
 
-  Set aside 5 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+  Set aside 5 to 10 minutes to finish this program. You can log in and save your work to return to later. 
 
   Once you complete the program, you can download your form and instructions. You should ask the Circuit Clerk for the court how they would like you to submit your interpreter request.
   
@@ -138,6 +138,11 @@ id: who can request
 question: |
   Qualifications
 subquestion: |
+  To complete this program, you will need to know:
+
+  * The names of all the parties involved in the case, and
+  * The address of the person who needs an interpreter.
+  
   To request an interpreter, you or the person you are helping must be a:
 
   * Party (a person who brings or defends a lawsuit),
@@ -149,16 +154,6 @@ subquestion: |
   * Juror (sign language only), or
   * Spectator (sign language only).
 continue button field: who_qualifies
----
-id: requirements
-question: |
-  Required information
-subquestion: |
-  To complete this program, you will need to know:
-
-  * The names of all the parties involved in the case, and
-  * The address of the person who needs an interpreter.
-continue button field: required_info
 ---
 id: who needs interpreter
 question: |
@@ -204,11 +199,25 @@ fields:
 id: include email
 question: |
   Do you have an email address?
-subquestion: |
-  If you have an email address, you must list it so the court can contact you about this request.
 fields:
   - no label: user.include_email_address
     datatype: yesnoradio
+---
+sets:
+  user.phone_number
+  user.email
+id: your contact information
+question: |
+  What is your phone number and email address?
+subquestion: |
+  This information can help the court contact you.  
+fields:
+  - Phone number: user.phone_number
+    datatype: al_international_phone
+    required: False
+  - Email: user.email
+    datatype: email
+    required: False
 ---
 id: your email
 question: |
@@ -246,6 +255,21 @@ fields:
     code: |
       states_list() 
   - ZIP code: other_person.address.zip
+---
+sets:
+  - other_person.phone_number
+  - other_person.email
+id: other person contact information
+question: |
+  What is ${other_person.name.full(middle='full')}'s phone number and email address?
+subquestion: |
+  This information can help the court contact ${other_person.name.full(middle='full')}.
+fields:
+  - Phone number: other_person.phone_number
+    datatype: al_international_phone
+    required: False
+  - Email: other_person.email
+    datatype: email
 ---
 id: other person phone number
 question: |
@@ -289,12 +313,25 @@ choices:
   - Parent or guardian of a disabled adult who is a party or a victim: adult guardian
   - Witness: witness
   - Victim: victim
-  - Juror: juror
-    help: |
-      The only interpreter a juror can request is a sign language interpreter.
-  - Spectator: spectator
-    help: |
-      The only interpreter a spectator can request is a sign language interpreter.
+  - Juror (sign language interpreter only): juror
+  - Spectator (sign language interpreter only): spectator
+---
+id: all court date explainer
+question: |
+  All court dates
+subquestion: |
+  % if role_in_case == "party":
+  As you are a party in the case, you will be requesting an interpreter for all court dates.
+  % elif role_in_case == "behalf":
+  As you are a person filing on behalf of a minor or disabled adult, you will be requesting an interpreter for all court dates.
+  % elif role_in_case == "minor guardian":
+  As you are a parent or guardian of a minor child who is a party or victim, you will be requesting an interpreter for all court dates.
+  % elif role_in_case == "adult guardian":
+  As you are a parent or guardian of a disabled adult who is a party or victim, you will be requesting an interpreter for all court dates.
+  % elif role_in_case == "adult guardian":
+  As you are a parent or guardian of a disabled adult who is a party or victim, you will be requesting an interpreter for all court dates.
+  % endif
+continue button field: all_court_dates
 ---
 # Not certain about the phrasing of this question, this is just pulled from the A2JAuthor interview.
 id: language
@@ -305,7 +342,7 @@ question: |
   Which language will ${other_person.name.full(middle='full')} need?
   % endif
 subquestion: |
-  If the language you need isn't listed, choose Other at the end of the list. If you choose "Other", you will enter which language you need.
+  If the language you need is not in this list, select "Other" and enter the language you need.
 fields: 
   - Language: language_needed
     input type: dropdown
@@ -371,45 +408,35 @@ fields:
 id: date and time
 question: |
   % if who_needs == "Myself":
-  What is the court date and time you will need an interpreter?
+  When will you need an interpreter?
   % else:
-  What is the court date and time ${other_person.name.full(middle='full')} will need an interpreter?
+  When will ${other_person.name.full(middle='full')} need an interpreter?
   % endif
 fields:
-  - Date: court_date
+  - Court date: court_date
     datatype: date
     default: ${ today().format("yyyy-MM-dd") }
     min: ${ today().format("yyyy-MM-dd") }
-  - Time: court_time
+  - Court time: court_time
     datatype: time
 ---
 id: case number
 question: |
-  % if who_needs == "Myself":
-  What is your case number?
-  % else:
-  What is ${other_person.name.full(middle='full')}'s case number?
-  % endif
+  What is the case number?
 subquestion: |
-  % if who_needs == "Myself":
-  If you are the plaintiff, the court clerk will give you a number for your case. Otherwise, the case number will appear on the document from the court that told you about the lawsuit).
+  The case number can usually be found on the upper right corner of court forms. If this is a new case, the court clerk will assign a case number once it is filed.
   
-  If you do not have a case number yet, leave this blank.
-  % else:
-  If ${other_person.name.full(middle='full')} is the plaintiff, the court clerk will give them a number for your case. Otherwise, the case number will appear on the document from the court that told them about the lawsuit).
-  
-  If they do not have a case number yet, leave this blank.
-  % endif
+  If there is not a case number yet, leave this blank.
 fields:
   - Case number: case_number
+    required: False
 ---
 id: signature
 question: |
   Do you want to add your electronic signature to your form?
 subquestion: |
   The program will put “/s/ ${user.name.full(middle='full')} ” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
-  
-  Electronic filing, also called e-filing, is required in Illinois, unless you qualify for an exemption. Some courts allow paper filing.
+
 fields:
   - "Add electronic signature?": e_signature
     datatype: yesnoradio
@@ -492,7 +519,7 @@ attachment:
     fields:
       - "needer_name": ${ user.name.full(middle='full') if who_needs == "Myself" else other_person.name.full(middle='full') }
       - "needer_address": ${ user.address.on_one_line() if who_needs == "Myself" else other_person.address.on_one_line() }
-      - "needer_phone": ${ user.phone_number if who_needs == "Myself" else other_person.phone_number}
+      - "needer_phone": ${ phone_number_formatted(user.phone_number) if who_needs == "Myself" else phone_number_formatted(other_person.phone_number)}
       - "needer_email": ${which_email}
       - "case_number": ${case_number}
       - "party": ${ True if role_in_case == "party" else False}
@@ -506,15 +533,15 @@ attachment:
       - "witness_date": ${ court_date if role_in_case == "witness" else ""}
       - "victim_date": ${ court_date if role_in_case == "victim" else ""}
       - "juror_date": ${ court_date if role_in_case == "juror" else ""}
-      - "spectator_date": ${ court_time if role_in_case == "spectator" else ""}
-      - "witness_time": ${ court_time if role_in_case == "witness" else ""}
-      - "victim_time": ${ court_time if role_in_case == "victim" else ""}
-      - "juror_time": ${ court_time if role_in_case == "juror" else ""}
-      - "spectator_time": ${ court_time if role_in_case == "spectator" else ""}
+      - "spectator_date": ${ court_date if role_in_case == "spectator" else ""}
+      - "witness_time": ${ format_time(court_time) if role_in_case == "witness" else ""}
+      - "victim_time": ${ format_time(court_time) if role_in_case == "victim" else ""}
+      - "juror_time": ${ format_time(court_time) if role_in_case == "juror" else ""}
+      - "spectator_time": ${ format_time(court_time) if role_in_case == "spectator" else ""}
       - "helper_name": ${user.name.full(middle='full') if who_needs == "Someone else" else ""}
       - "helper_address": ${user.address.on_one_line() if who_needs == "Someone else" else ""}
-      - "helper_phone": ${user.phone_number if who_needs == "Someone else" else ""}
-      - "helper_email": ${user.email if who_needs == "Someone else" and user.include_email_address == True else ""}
+      - "helper_phone": ${phone_number_formatted(user.phone_number) if who_needs == "Someone else" else ""}
+      - "helper_email": ${user.email if who_needs == "Someone else" else ""}
       - "Spanish": ${True if language_needed == "Spanish" else False}
       - "albanian": ${True if language_needed == "Albanian" else False}
       - "american_sign_language": ${True if language_needed == "American Sign Language" or role_in_case == "juror" or role_in_case == "spectator" else False}
@@ -595,16 +622,11 @@ review:
   - Edit: user.phone_number
     button: |
       **Your phone number:**
-      ${user.phone_number}
-  - Edit: user.include_email_address
-    button: |
-      **Do you want to include your email address?**
-      ${word(yesno(user.include_email_address))}
+      ${phone_number_formatted(user.phone_number)}
   - Edit: user.email
     button: |
       **Your email address:**
       ${user.email}
-    show if: user.include_email_address
   - Edit: who_needs
     button: |
      **Do you need an interpreter for yourself or someone else?**
@@ -622,18 +644,13 @@ review:
   - Edit: user.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
-      ${other_person.phone_number}
-    show if: who_needs == "Someone else"
-  - Edit: other_person.include_email_address
-    button: |
-      **Does ${other_person.name.full(middle='full')} want to include their email address?**
-      ${word(yesno(other_person.include_email_address))}
+      ${phone_number_formatted(other_person.phone_number)}
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
       ${user.email}
-    show if: who_needs == "Someone else" and other_person.include_email_address == True
+    show if: who_needs == "Someone else"
   - Edit: role_in_case
     button: |
       % if who_needs == "Myself":
@@ -666,7 +683,7 @@ review:
   - Edit: court_date
     button: |
       **Date and time of court appearance:**
-      ${court_date}, ${court_time}
+      ${court_date}, ${format_time(court_time)}
     show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
   - Edit: case_number
     button: |
@@ -680,7 +697,7 @@ review:
 id: review user
 event: section_user
 question: |
-  Your information
+  About person making request
 subquestion: |
   Edit your answers below.
 review:
@@ -695,16 +712,11 @@ review:
   - Edit: user.phone_number
     button: |
       **Your phone number:**
-      ${user.phone_number}
-  - Edit: user.include_email_address
-    button: |
-      **Do you want to include your email address?**
-      ${word(yesno(user.include_email_address))}
+      ${phone_number_formatted(user.phone_number)}
   - Edit: user.email
     button: |
       **Your email address:**
       ${user.email}
-    show if: user.include_email_address
   - Edit: who_needs
     button: |
      **Do you need an interpreter for yourself or someone else?**
@@ -717,7 +729,7 @@ review:
 id: review someone
 event: section_someone
 question: |
-  Someone else's information
+  About person needing interpreter (optional)
 subquestion: |
   Edit your answers below.
 review:
@@ -738,18 +750,13 @@ review:
   - Edit: user.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
-      ${other_person.phone_number}
-    show if: who_needs == "Someone else"
-  - Edit: other_person.include_email_address
-    button: |
-      **Does ${other_person.name.full(middle='full')} want to include their email address?**
-      ${word(yesno(other_person.include_email_address))}
+      ${phone_number_formatted(other_person.phone_number)}
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
       ${user.email}
-    show if: who_needs == "Someone else" and other_person.include_email_address == True
+    show if: who_needs == "Someone else"
 ---
 id: review case
 event: section_case
@@ -790,7 +797,7 @@ review:
   - Edit: court_date
     button: |
       **Date and time of court appearance:**
-      ${court_date}, ${court_time}
+      ${court_date}, ${format_time(court_time)}
     show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
   - Edit: case_number
     button: |
