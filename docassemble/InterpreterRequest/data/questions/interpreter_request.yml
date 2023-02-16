@@ -39,13 +39,13 @@ code: |
   accept_terms
   who_qualifies
   nav.set_section('section_user')
+  who_needs
   set_progress(20)
   user.name.first
   user.address.address
   user.phone_number
   user.email
   set_progress(40)
-  who_needs
   nav.set_section('section_someone')
   if who_needs == "Someone else":
     other_person.name.first
