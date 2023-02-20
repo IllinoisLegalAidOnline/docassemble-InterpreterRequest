@@ -38,6 +38,7 @@ code: |
   how_to_use
   accept_terms
   who_qualifies
+  needed_info
   nav.set_section('section_user')
   who_needs
   set_progress(20)
@@ -51,8 +52,7 @@ code: |
     other_person.name.first
     other_person.address.address
     other_person.phone_number
-    if other_person.include_email_address == True:
-      other_person.email
+    other_person.email
   nav.set_section('section_case')
   set_progress(60)
   if role_in_case != "juror" and role_in_case != "spectator":
@@ -72,9 +72,9 @@ id: welcome
 question: |
   Interpreter request
 subquestion: |
-  Welcome to Illinois Legal Aid Online's **Interpreter Request** program.
+  Welcome to Illinois Legal Aid Online's **Interpreter request** program.
 
-  This program will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
+  This program will make a form to request an interpreter to help you or someone else understand what is being said in court.
 
   The form you create with this program can only be used in Illinois.
 field: sees_nav_bar
@@ -138,11 +138,6 @@ id: who can request
 question: |
   Qualifications
 subquestion: |
-  To complete this program, you will need to know:
-
-  * The names of all the parties involved in the case, and
-  * The address of the person who needs an interpreter.
-  
   To request an interpreter, you or the person you are helping must be a:
 
   * Party (a person who brings or defends a lawsuit),
@@ -154,6 +149,20 @@ subquestion: |
   * Juror (sign language only), or
   * Spectator (sign language only).
 continue button field: who_qualifies
+---
+id: needed information
+question: |
+  Requirements
+subquestion: |
+  To complete this program, you will need to know:
+
+  * The name and contact information of person who needs an interpreter,
+  * The name and contact information of person making request (if different),
+  * The role the person needing an interpreter has in the case, and
+  * The language needed.
+  
+  Different courts can handle interpreter requests differently. You may want to contact the court clerk with any questions about how to request an interpreter.
+continue button field: needed_info
 ---
 id: who needs interpreter
 question: |
@@ -204,8 +213,8 @@ fields:
     datatype: yesnoradio
 ---
 sets:
-  user.phone_number
-  user.email
+  - user.phone_number
+  - user.email
 id: your contact information
 question: |
   What is your phone number and email address?
@@ -216,6 +225,22 @@ fields:
     datatype: al_international_phone
     required: False
   - Email: user.email
+    datatype: email
+    required: False
+---    
+sets:
+  - other_person.phone_number
+  - other_person.email
+id: other person contact information
+question: |
+  What is ${other_person.name.full(middle='full')}'s phone number and email address?
+subquestion: |
+  This information can help the court contact ${other_person.name.full(middle='full')}.  
+fields:
+  - Phone number: other_person.phone_number
+    datatype: al_international_phone
+    required: False
+  - Email: other_person.email
     datatype: email
     required: False
 ---
@@ -270,13 +295,14 @@ fields:
     required: False
   - Email: other_person.email
     datatype: email
+    required: False
 ---
-id: other person phone number
-question: |
-  What is ${other_person.name.full(middle='full')}'s phone number?
-fields:
-  - Phone number: other_person.phone_number
-    datatype: al_international_phone
+#id: other person phone number
+#question: |
+  #What is ${other_person.name.full(middle='full')}'s phone number?
+#fields:
+  #- Phone number: other_person.phone_number
+    #datatype: al_international_phone
 ---
 id: include email
 question: |
@@ -321,17 +347,28 @@ question: |
   All court dates
 subquestion: |
   % if role_in_case == "party":
-  As you are a party in the case, you will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a party in the case, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "behalf":
-  As you are a person filing on behalf of a minor or disabled adult, you will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a person filing on behalf of a minor or disabled adult, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "minor guardian":
-  As you are a parent or guardian of a minor child who is a party or victim, you will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a minor child who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As you are a parent or guardian of a disabled adult who is a party or victim, you will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As you are a parent or guardian of a disabled adult who is a party or victim, you will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % endif
 continue button field: all_court_dates
+---
+depends on:
+  - who_needs
+  - other_person.name
+code: |
+  if who_needs == "Myself":
+    you_are_or_name_is = "you are"
+    you_or_they = "you"
+  else:
+    you_are_or_name_is = other_person.name.full(middle='full') + " is"
+    you_or_they = "they"
 ---
 # Not certain about the phrasing of this question, this is just pulled from the A2JAuthor interview.
 id: language
@@ -424,9 +461,7 @@ id: case number
 question: |
   What is the case number?
 subquestion: |
-  The case number can usually be found on the upper right corner of court forms. If this is a new case, the court clerk will assign a case number once it is filed.
-  
-  If there is not a case number yet, leave this blank.
+  The case number can usually be found on the upper right corner of court forms. If this is a new case, you can leave this blank and the court clerk will assign a case number once it is filed.
 fields:
   - Case number: case_number
     required: False
@@ -435,7 +470,7 @@ id: signature
 question: |
   Do you want to add your electronic signature to your form?
 subquestion: |
-  The program will put “/s/ ${user.name.full(middle='full')} ” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
+  The program will put “/s/ ${user.name.full(middle='full')}” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
 
 fields:
   - "Add electronic signature?": e_signature
@@ -487,21 +522,13 @@ objects:
 # Handles which, if any, email address is used in the needer's email address field.
 depends on:
   - who_needs
-  - user.include_email_address
   - user.email
-  - other_person.include_email_address
   - other_person.email
 code: |
   if who_needs == "Myself":
-    if user.include_email_address == True:
-      which_email = user.email
-    else:
-      which_email = ""
+    which_email = user.email
   else:
-    if other_person.include_email_address == True:
-      which_email = other_person.email
-    else:
-      which_email = ""
+    which_email = other_person.email
 ---
 attachment:
   - name: instructions
@@ -530,10 +557,10 @@ attachment:
       - "victim": ${ True if role_in_case == "victim" else False}
       - "juror": ${ True if role_in_case == "juror" else False}
       - "spectator": ${ True if role_in_case == "spectator" else False}
-      - "witness_date": ${ court_date if role_in_case == "witness" else ""}
-      - "victim_date": ${ court_date if role_in_case == "victim" else ""}
-      - "juror_date": ${ court_date if role_in_case == "juror" else ""}
-      - "spectator_date": ${ court_date if role_in_case == "spectator" else ""}
+      - "witness_date": ${ format_date(court_date, format='short') if role_in_case == "witness" else ""}
+      - "victim_date": ${ format_date(court_date, format='short') if role_in_case == "victim" else ""}
+      - "juror_date": ${ format_date(court_date, format='short') if role_in_case == "juror" else ""}
+      - "spectator_date": ${ format_date(court_date, format='short') if role_in_case == "spectator" else ""}
       - "witness_time": ${ format_time(court_time) if role_in_case == "witness" else ""}
       - "victim_time": ${ format_time(court_time) if role_in_case == "victim" else ""}
       - "juror_time": ${ format_time(court_time) if role_in_case == "juror" else ""}
