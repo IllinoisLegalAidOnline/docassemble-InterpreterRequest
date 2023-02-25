@@ -154,12 +154,14 @@ id: needed information
 question: |
   Requirements
 subquestion: |
-  To complete this program, you will need to know:
+  To complete this program, you will need to know the:
 
-  * The name and contact information of person who needs an interpreter,
-  * The name and contact information of person making request (if different),
-  * The role the person needing an interpreter has in the case, and
-  * The language needed.
+  * Name and contact information of person who needs an interpreter,
+  * Name and contact information of person making request (if different),
+  * Role the person needing an interpreter has in the case,
+  * Language needed, 
+  * Case number, and
+  * Court date and time when an interpreter is needed.
   
   Different courts can handle interpreter requests differently. You may want to contact the court clerk with any questions about how to request an interpreter.
 continue button field: needed_info
@@ -449,6 +451,12 @@ question: |
   % else:
   When will ${other_person.name.full(middle='full')} need an interpreter?
   % endif
+subquestion: |
+  % if who_needs == "Myself":
+  Enter the court date and time when you will be in court and need an interpreter.
+  % else:
+  Enter the court date and time when ${other_person.name.full(middle='full')} will be in court and need an interpreter.
+  % endif
 fields:
   - Court date: court_date
     datatype: date
@@ -557,14 +565,10 @@ attachment:
       - "victim": ${ True if role_in_case == "victim" else False}
       - "juror": ${ True if role_in_case == "juror" else False}
       - "spectator": ${ True if role_in_case == "spectator" else False}
-      - "witness_date": ${ format_date(court_date, format='short') if role_in_case == "witness" else ""}
-      - "victim_date": ${ format_date(court_date, format='short') if role_in_case == "victim" else ""}
-      - "juror_date": ${ format_date(court_date, format='short') if role_in_case == "juror" else ""}
-      - "spectator_date": ${ format_date(court_date, format='short') if role_in_case == "spectator" else ""}
-      - "witness_time": ${ format_time(court_time) if role_in_case == "witness" else ""}
-      - "victim_time": ${ format_time(court_time) if role_in_case == "victim" else ""}
-      - "juror_time": ${ format_time(court_time) if role_in_case == "juror" else ""}
-      - "spectator_time": ${ format_time(court_time) if role_in_case == "spectator" else ""}
+      - "witness_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "witness" else ""}
+      - "victim_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "victim" else ""}
+      - "juror_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "juror" else ""}
+      - "spectator_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "spectator" else ""}
       - "helper_name": ${user.name.full(middle='full') if who_needs == "Someone else" else ""}
       - "helper_address": ${user.address.on_one_line() if who_needs == "Someone else" else ""}
       - "helper_phone": ${phone_number_formatted(user.phone_number) if who_needs == "Someone else" else ""}
@@ -665,10 +669,10 @@ review:
     show if: who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
-      **Your address:**
-      ${user.address.on_one_line()}
+      **${other_person.name.full(middle='full')}'s address:**
+      ${other_person.address.on_one_line()}
     show if: who_needs == "Someone else"
-  - Edit: user.phone_number
+  - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
       ${phone_number_formatted(other_person.phone_number)}
@@ -676,7 +680,7 @@ review:
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
-      ${user.email}
+      ${other_person.email}
     show if: who_needs == "Someone else"
   - Edit: role_in_case
     button: |
@@ -748,6 +752,11 @@ review:
     button: |
      **Do you need an interpreter for yourself or someone else?**
      ${who_needs}
+  - Edit: language_needed
+    button: |
+      **Language needed:**
+      ${language_needed}
+    show if: role_in_case != "juror" and role_in_case != "spectator" and who_needs != "Someone else"
   - Edit: e_signature
     button: |
       **Do you want to include an e-signature?**
@@ -769,12 +778,17 @@ review:
       **Who needs an interpreter?**
       ${other_person.name.full(middle='full')}
     show if: who_needs == "Someone else"
+  - Edit: language_needed
+    button: |
+      **Language needed:**
+      ${language_needed}
+    show if: role_in_case != "juror" and role_in_case != "spectator" and who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
-      **Your address:**
-      ${user.address.on_one_line()}
+      **${other_person.name.full(middle='full')}'s address:**
+      ${other_person.address.on_one_line()}
     show if: who_needs == "Someone else"
-  - Edit: user.phone_number
+  - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
       ${phone_number_formatted(other_person.phone_number)}
@@ -782,7 +796,7 @@ review:
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
-      ${user.email}
+      ${other_person.email}
     show if: who_needs == "Someone else"
 ---
 id: review case
