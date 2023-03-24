@@ -138,9 +138,9 @@ id: who can request
 question: |
   Qualifications
 subquestion: |
-  To request an interpreter, you or the person you are helping must be a:
+  To request an interpreter, you or the person who needs an interpreter must be a:
 
-  * Party (a person who brings or defends a lawsuit),
+  * Party in the case (a person who brings or defends a lawsuit),
   * Person who brings or defends a case on behalf of a minor or adult disabled party,
   * Parent or legal guardian of a minor party or minor victim,
   * Parent or legal guardian of an adult disabled party,
@@ -343,6 +343,9 @@ choices:
   - Victim: victim
   - Juror (sign language interpreter only): juror
   - Spectator (sign language interpreter only): spectator
+validation code: |
+  if role_in_case == "juror" or role_in_case == "spectator":
+    language_needed = "American Sign Language"
 ---
 id: all court date explainer
 question: |
@@ -381,7 +384,11 @@ question: |
   Which language will ${other_person.name.full(middle='full')} need?
   % endif
 subquestion: |
+  % if who_needs == "Myself":
   If the language you need is not in this list, select "Other" and enter the language you need.
+  % else:
+  If the language ${other_person.name.full(middle='full')} needs is not in this list, select "Other" and enter the language they need.
+  % endif
 fields: 
   - Language: language_needed
     input type: dropdown
@@ -558,7 +565,7 @@ attachment:
       - "needer_email": ${which_email}
       - "case_number": ${case_number}
       - "party": ${ True if role_in_case == "party" else False}
-      - "behalf": S{ True if role_in_case == "behalf" else False}
+      - "behalf": ${ True if role_in_case == "behalf" else False}
       - "minor_guardian": ${ True if role_in_case == "minor guardian" else False}
       - "adult_guardian": ${ True if role_in_case == "adult guardian" else False}
       - "witness": ${ True if role_in_case == "witness" else False}
@@ -830,11 +837,6 @@ review:
       % elif role_in_case == "spectator":
       Spectator (American Sign Language only)
       % endif
-  - Edit: language_needed
-    button: |
-      **Language needed:**
-      ${language_needed}
-    show if: role_in_case != "juror" and role_in_case != "spectator"
   - Edit: court_date
     button: |
       **Date and time of court appearance:**
@@ -844,7 +846,3 @@ review:
     button: |
       **Case number:**
       ${case_number}
-  - Edit: e_signature
-    button: |
-      **Do you want to include an e-signature?**
-      ${word(yesno(e_signature))}
