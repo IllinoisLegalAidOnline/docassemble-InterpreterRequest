@@ -343,9 +343,6 @@ choices:
   - Victim: victim
   - Juror (sign language interpreter only): juror
   - Spectator (sign language interpreter only): spectator
-validation code: |
-  if role_in_case == "juror" or role_in_case == "spectator":
-    language_needed = "American Sign Language"
 ---
 id: all court date explainer
 question: |
@@ -580,60 +577,60 @@ attachment:
       - "helper_address": ${user.address.on_one_line() if who_needs == "Someone else" else ""}
       - "helper_phone": ${phone_number_formatted(user.phone_number) if who_needs == "Someone else" else ""}
       - "helper_email": ${user.email if who_needs == "Someone else" else ""}
-      - "Spanish": ${True if language_needed == "Spanish" else False}
-      - "albanian": ${True if language_needed == "Albanian" else False}
+      - "Spanish": ${True if language_needed == "Spanish" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "albanian": ${True if language_needed == "Albanian" and role_in_case != "juror" and role_in_case != "spectator" else False}
       - "american_sign_language": ${True if language_needed == "American Sign Language" or role_in_case == "juror" or role_in_case == "spectator" else False}
-      - "amharic": ${True if language_needed == "Amharic" else False}
-      - "arabic": ${True if language_needed == "Arabic" else False}
-      - "armenian": ${True if language_needed == "Armenian" else False}
-      - "assyrian": ${True if language_needed == "Assyrian" else False}
-      - "bosnian": ${True if language_needed == "Bosnian" else False}
-      - "bulgarian": ${True if language_needed == "Bulgarian" else False}
-      - "burmese": ${True if language_needed == "Burmese" else False}
-      - "mandarin": ${True if language_needed == "Chinese-Mandarin" else False}
-      - "cantonese": ${True if language_needed == "Chinese-Cantonese" else False}
-      - "czech": ${True if language_needed == "Czech" else False}
-      - "dinka": ${True if language_needed == "Dinka" else False}
-      - "filipino": ${True if language_needed == "Filipino" else False}
-      - "french": ${True if language_needed == "French" else False}
-      - "german": ${True if language_needed == "German" else False}
-      - "greek": ${True if language_needed == "Greek" else False}
-      - "gujarati": ${True if language_needed == "Gujarati" else False}
-      - "haitian": ${True if language_needed == "Haitian Creole" else False}
-      - "hindi": ${True if language_needed == "Hindi" else False}
-      - "hungarian": ${True if language_needed == "Hungarian" else False}
-      - "indonesian": ${True if language_needed == "Indonesian" else False}
-      - "italian": ${True if language_needed == "Italian" else False}
-      - "japanese": ${True if language_needed == "Japanese" else False}
-      - "karen": ${True if language_needed == "Karen" else False}
-      - "kirundi": ${True if language_needed == "Kirundi" else False}
-      - "korean": ${True if language_needed == "Korean" else False}
-      - "kunama": ${True if language_needed == "Kunama" else False}
-      - "laotian": ${True if language_needed == "Laotian" else False}
-      - "lithuanian": ${True if language_needed == "Lithuanian" else False}
-      - "macedonian": ${True if language_needed == "Macedonian" else False}
-      - "mongolian": ${True if language_needed == "Mongolian" else False}
-      - "nepali": ${True if language_needed == "Nepali" else False}
-      - "persian": ${True if language_needed == "Persian" else False}
-      - "polish": ${True if language_needed == "Polish" else False}  
-      - "portuguese": ${True if language_needed == "Portuguese" else False}
-      - "punjabi": ${True if language_needed == "Punjabi" else False}
-      - "romanian": ${True if language_needed == "Romanian" else False}
-      - "russian": ${True if language_needed == "Russian" else False}
-      - "serbo_croatian": ${True if language_needed == "Serbo-Croatian" else False}
-      - "somali": ${True if language_needed == "Somali" else False}
-      - "swahili": ${True if language_needed == "Swahili" else False}
-      - "tagalog": ${True if language_needed == "Tagalog" else False}
-      - "telugu": ${True if language_needed == "Telugu" else False}
-      - "thai": ${True if language_needed == "Thai" else False}
-      - "tigrinya": ${True if language_needed == "Tigrinya" else False}
-      - "turkish": ${True if language_needed == "Turkish" else False}
-      - "ukranian": ${True if language_needed == "Ukranian" else False}
-      - "urdu": ${True if language_needed == "Urdu" else False}
-      - "vietnamese": ${True if language_needed == "Vietnamese" else False}
-      - "yoruba": ${True if language_needed == "Yoruba" else False}
-      - "other": ${True if language_needed == "Other" else False}
-      - "other_language": ${ other_language if language_needed == "Other" else ""}
+      - "amharic": ${True if language_needed == "Amharic" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "arabic": ${True if language_needed == "Arabic" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "armenian": ${True if language_needed == "Armenian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "assyrian": ${True if language_needed == "Assyrian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "bosnian": ${True if language_needed == "Bosnian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "bulgarian": ${True if language_needed == "Bulgarian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "burmese": ${True if language_needed == "Burmese" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "mandarin": ${True if language_needed == "Chinese-Mandarin" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "cantonese": ${True if language_needed == "Chinese-Cantonese" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "czech": ${True if language_needed == "Czech" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "dinka": ${True if language_needed == "Dinka" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "filipino": ${True if language_needed == "Filipino" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "french": ${True if language_needed == "French" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "german": ${True if language_needed == "German" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "greek": ${True if language_needed == "Greek" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "gujarati": ${True if language_needed == "Gujarati" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "haitian": ${True if language_needed == "Haitian Creole" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "hindi": ${True if language_needed == "Hindi" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "hungarian": ${True if language_needed == "Hungarian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "indonesian": ${True if language_needed == "Indonesian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "italian": ${True if language_needed == "Italian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "japanese": ${True if language_needed == "Japanese" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "karen": ${True if language_needed == "Karen" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "kirundi": ${True if language_needed == "Kirundi" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "korean": ${True if language_needed == "Korean" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "kunama": ${True if language_needed == "Kunama" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "laotian": ${True if language_needed == "Laotian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "lithuanian": ${True if language_needed == "Lithuanian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "macedonian": ${True if language_needed == "Macedonian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "mongolian": ${True if language_needed == "Mongolian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "nepali": ${True if language_needed == "Nepali" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "persian": ${True if language_needed == "Persian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "polish": ${True if language_needed == "Polish" and role_in_case != "juror" and role_in_case != "spectator" else False}  
+      - "portuguese": ${True if language_needed == "Portuguese" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "punjabi": ${True if language_needed == "Punjabi" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "romanian": ${True if language_needed == "Romanian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "russian": ${True if language_needed == "Russian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "serbo_croatian": ${True if language_needed == "Serbo-Croatian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "somali": ${True if language_needed == "Somali" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "swahili": ${True if language_needed == "Swahili" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "tagalog": ${True if language_needed == "Tagalog" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "telugu": ${True if language_needed == "Telugu" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "thai": ${True if language_needed == "Thai" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "tigrinya": ${True if language_needed == "Tigrinya" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "turkish": ${True if language_needed == "Turkish" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "ukranian": ${True if language_needed == "Ukranian" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "urdu": ${True if language_needed == "Urdu" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "vietnamese": ${True if language_needed == "Vietnamese" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "yoruba": ${True if language_needed == "Yoruba" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "other": ${True if language_needed == "Other" and role_in_case != "juror" and role_in_case != "spectator" else False}
+      - "other_language": ${ other_language if language_needed == "Other" and role_in_case != "juror" and role_in_case != "spectator" else ""}
       - "signature_date": ${ today() if e_signature == True else ""}
       - "e_signature": ${user.name.full(middle='full') if e_signature == True else ""}
       - "signer_name": ${user.name.full(middle='full')}
