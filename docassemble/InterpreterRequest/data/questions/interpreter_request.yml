@@ -43,24 +43,29 @@ code: |
   who_needs
   set_progress(20)
   user.name.first
-  user.address.address
+  if user.include_address == True:
+    user.address.address
   user.phone_number
   user.email
   set_progress(40)
   nav.set_section('section_someone')
   if who_needs == "Someone else":
     other_person.name.first
-    other_person.address.address
+    if other_person.include_address == True:
+      other_person.address.address
     other_person.phone_number
     other_person.email
   nav.set_section('section_case')
   set_progress(60)
   if role_in_case != "juror" and role_in_case != "spectator":
     language_needed
+  if role_in_case == "juror" or role_in_case == "spectator" or language_needed == "American Sign Language":
+    disability_reminder
   if role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim":
     court_date
   else:
-    all_court_dates
+    if know_first_date == True:
+      court_date
   set_progress(80)
   case_number
   e_signature
@@ -89,6 +94,8 @@ subquestion: |
   Set aside 5 to 10 minutes to finish this program. You can log in and save your work to return to later. 
 
   Once you complete the program, you can download your form and instructions. You should ask the Circuit Clerk for the court how they would like you to submit your interpreter request.
+  
+  A translator may not be available immediately after you request one. You may want to submit your interpreter request as soon as possible to make sure the court has time to get an interpreter. Some courts may require advanced notice.
   
   ${ collapse_template(help_example) }  
 
@@ -141,9 +148,9 @@ subquestion: |
   To request an interpreter, you or the person who needs an interpreter must be a:
 
   * Party in the case (a person who brings or defends a lawsuit),
-  * Person who brings or defends a case on behalf of a minor or adult disabled party,
-  * Parent or legal guardian of a minor party or minor victim,
-  * Parent or legal guardian of an adult disabled party,
+  * Person who brings or defends a case for a minor or adult disabled person,
+  * Parent or legal guardian of a minor plaintiff, minor defendant, or minor victim,
+  * Parent or legal guardian of an adult disabled plaintiff or defendant,
   * Witness,
   * Victim in the case,
   * Juror (sign language only), or
@@ -185,6 +192,13 @@ fields:
   - Suffix: user.name.suffix
     required: False
     code: name_suffix()
+---
+id: include user address
+question: |
+  Do you want to list your address on the form?
+fields:
+  - no label: user.include_address
+    datatype: yesnoradio
 ---
 id: user address
 question: |
@@ -229,6 +243,10 @@ fields:
   - Email: user.email
     datatype: email
     required: False
+validation code: |
+  if (not showifdef('user.phone_number') and \
+      (not showifdef('user.email'))):
+    validation_error(word("You need to provide at least one contact method."), field="user.other_contact_method")
 ---    
 sets:
   - other_person.phone_number
@@ -269,6 +287,13 @@ fields:
     required: False
     code: name_suffix()
 ---
+id: include other person address
+question: |
+  Do you want to list ${other_person.name.full(middle='full')}'s address on the form?
+fields:
+  - no label: other_person.include_address
+    datatype: yesnoradio
+---
 id: other person address
 question: |
   What is ${other_person.name.full(middle='full')}'s address?
@@ -298,6 +323,10 @@ fields:
   - Email: other_person.email
     datatype: email
     required: False
+validation code: |
+  if (not showifdef('other_person.phone_number') and \
+      (not showifdef('other_person.email'))):
+    validation_error(word("You need to provide at least one contact method."), field="other_person.other_contact_method")
 ---
 #id: other person phone number
 #question: |
@@ -335,10 +364,10 @@ question: |
   % endif
 field: role_in_case
 choices:
-  - Party in the case: party
-  - Person filing on behalf of a minor or disabled adult: behalf
-  - Parent or guardian of a minor child who is a party or victim: minor guardian
-  - Parent or guardian of a disabled adult who is a party or a victim: adult guardian
+  - Plaintiff or defendant in the case: party
+  - Person filing for a minor or disabled adult: behalf
+  - Parent or guardian of a minor child who is a plaintiff, defendant, or victim: minor guardian
+  - Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim: adult guardian
   - Witness: witness
   - Victim: victim
   - Juror (sign language interpreter only): juror
@@ -349,17 +378,21 @@ question: |
   All court dates
 subquestion: |
   % if role_in_case == "party":
-  As ${you_are_or_name_is} a party in the case, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a plaintiff or defendant in the case, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "behalf":
-  As ${you_are_or_name_is} a person filing on behalf of a minor or disabled adult, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a person filing for a minor or disabled adult, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "minor guardian":
-  As ${you_are_or_name_is} a parent or guardian of a minor child who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a minor child who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a party or victim, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % endif
-continue button field: all_court_dates
+  
+  Do ${you_or_they} when the first date you will need an interpreter is?
+fields:
+  - no label: know_first_date
+    datatype: yesnoradio
 ---
 depends on:
   - who_needs
@@ -450,16 +483,32 @@ fields:
 ---
 id: date and time
 question: |
+  % if role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim":
   % if who_needs == "Myself":
   When will you need an interpreter?
   % else:
   When will ${other_person.name.full(middle='full')} need an interpreter?
   % endif
+  % else:
+  % if who_needs == "Myself":
+  When will you first need an interpreter?
+  % else:
+  When will ${other_person.name.full(middle='full')} first need an interpreter?
+  % endif
+  % endif
 subquestion: |
+  % if role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim":
   % if who_needs == "Myself":
   Enter the court date and time when you will be in court and need an interpreter.
   % else:
   Enter the court date and time when ${other_person.name.full(middle='full')} will be in court and need an interpreter.
+  % endif
+  % else:
+  % if who_needs == "Myself":
+   Enter the first court date and time when you will be in court and need an interpreter.
+  % else:
+  Enter the first court date and time when ${other_person.name.full(middle='full')} will be in court and need an interpreter.
+  % endif
   % endif
 fields:
   - Court date: court_date
@@ -468,6 +517,13 @@ fields:
     min: ${ today().format("yyyy-MM-dd") }
   - Court time: court_time
     datatype: time
+---
+id: disability services reminder
+question: |
+  Note about American Sign Language
+subquestion: |
+  Some courts may have a separate system for requesting an American Sign Language interpreter. You may want to contact your court to see if they have their own request process.
+continue button field: disability_reminder
 ---
 id: case number
 question: |
@@ -557,7 +613,16 @@ attachment:
     editable: False
     fields:
       - "needer_name": ${ user.name.full(middle='full') if who_needs == "Myself" else other_person.name.full(middle='full') }
-      - "needer_address": ${ user.address.on_one_line() if who_needs == "Myself" else other_person.address.on_one_line() }
+      - "needer_address": |
+          % if who_needs == "Myself":
+          % if user.include_address == True:
+          ${user.address.on_one_line()}
+          % endif
+          % else:
+          % if other_person.include_address == True:
+          ${other_person.address.on_one_line()}
+          % endif
+          % endif
       - "needer_phone": ${ phone_number_formatted(user.phone_number) if who_needs == "Myself" else phone_number_formatted(other_person.phone_number)}
       - "needer_email": ${which_email}
       - "case_number": ${case_number}
@@ -569,7 +634,13 @@ attachment:
       - "victim": ${ True if role_in_case == "victim" else False}
       - "juror": ${ True if role_in_case == "juror" else False}
       - "spectator": ${ True if role_in_case == "spectator" else False}
-      - "witness_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "witness" else ""}
+      - "first_court_date": |
+          % if role_in_case != "witness" and role_in_case != "victim" and role_in_case != "juror" and role_in_case != "spectator" and know_first_date == True:
+          First court date: ${court_date} at ${format_time(court_time)}
+          % else:
+          ""
+          % endif 
+      - "witness_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "witness" else ""}      
       - "victim_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "victim" else ""}
       - "juror_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "juror" else ""}
       - "spectator_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "spectator" else ""}
@@ -649,11 +720,16 @@ review:
   - Edit: user.name.first
     button: |
       **Your name:**
-      ${user.name.full(middle='full')}
+      ${user.name.full(middle='full')}    
+  - Edit: user.include_address
+    button: |
+      **Do you want to include your address?**
+      ${word(yesno(user.include_address))}
   - Edit: user.address.address
     button: |
       **Your address:**
       ${user.address.on_one_line()}
+    show if: user.include_address
   - Edit: user.phone_number
     button: |
       **Your phone number:**
@@ -671,11 +747,14 @@ review:
       **Who needs an interpreter?**
       ${other_person.name.full(middle='full')}
     show if: who_needs == "Someone else"
+  - Edit: other_person.include_address
+    button: |
+      **Do you want to include ${other_person.name.full(middle='full')}'s address?**
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
       ${other_person.address.on_one_line()}
-    show if: who_needs == "Someone else"
+    show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
@@ -694,13 +773,13 @@ review:
       **${other_person.name.full(middle='full')}'s role in the case:**
       % endif
       % if role_in_case == "party":
-      Party in the case
+      Plaintiff or defendant in the case
       % elif role_in_case == "behalf":
-      Person filing on behalf of a minor or disabled adult
+      Person filing for a minor or disabled adult
       % elif role_in_case == "minor guardian":
-      Parent or guardian of a minor child who is a party or victim
+      Parent or guardian of a minor child who is a plaintiff, defendant, or victim
       % elif role_in_case == "adult guardian":
-      Parent or guardian of a disabled adult who is a party or a victim
+      Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim
       % elif role_in_case == "witness":
       Witness
       % elif role_in_case == "victim":
@@ -715,11 +794,20 @@ review:
       **Language needed:**
       ${language_needed}
     show if: role_in_case != "juror" and role_in_case != "spectator"
+  - Edit: know_first_date
+    button: |
+      **Do you know the first date ${you_or_they} will need an interpreter?**
+      ${word(yesno(know_first_date))}
+    show if: role_in_case != "juror" and role_in_case != "spectator" and role_in_case != "witness" and role_in_case != "victim"
   - Edit: court_date
     button: |
+      % if role_in_case != "juror" and role_in_case != "spectator" and role_in_case != "witness" and role_in_case != "victim":
+      **Date and time of first court appearance:**
+      % else:
       **Date and time of court appearance:**
+      % endif
       ${court_date}, ${format_time(court_time)}
-    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
+    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim" or know_first_date == True
   - Edit: case_number
     button: |
       **Case number:**
@@ -740,10 +828,15 @@ review:
     button: |
       **Your name:**
       ${user.name.full(middle='full')}
+  - Edit: user.include_address
+    button: |
+      **Do you want to include your address?**
+      ${word(yesno(user.include_address))}
   - Edit: user.address.address
     button: |
       **Your address:**
       ${user.address.on_one_line()}
+    show if: user.include_address
   - Edit: user.phone_number
     button: |
       **Your phone number:**
@@ -787,11 +880,14 @@ review:
       **Language needed:**
       ${language_needed}
     show if: role_in_case != "juror" and role_in_case != "spectator" and who_needs == "Someone else"
+  - Edit: other_person.include_address
+    button: |
+      **Do you want to include ${other_person.name.full(middle='full')}'s address?**
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
       ${other_person.address.on_one_line()}
-    show if: who_needs == "Someone else"
+    show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
@@ -818,13 +914,13 @@ review:
       **${other_person.name.full(middle='full')}'s role in the case:**
       % endif
       % if role_in_case == "party":
-      Party in the case
+      Plaintiff or defendant in the case
       % elif role_in_case == "behalf":
-      Person filing on behalf of a minor or disabled adult
+      Person filing for a minor or disabled adult
       % elif role_in_case == "minor guardian":
-      Parent or guardian of a minor child who is a party or victim
+      Parent or guardian of a minor child who is a plaintiff, defendant, or victim
       % elif role_in_case == "adult guardian":
-      Parent or guardian of a disabled adult who is a party or a victim
+      Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim
       % elif role_in_case == "witness":
       Witness
       % elif role_in_case == "victim":
@@ -834,11 +930,20 @@ review:
       % elif role_in_case == "spectator":
       Spectator (American Sign Language only)
       % endif
+  - Edit: know_first_date
+    button: |
+      **Do you know the first date ${you_or_they} will need an interpreter?**
+      ${word(yesno(know_first_date))}
+    show if: role_in_case != "juror" and role_in_case != "spectator" and role_in_case != "witness" and role_in_case != "victim"
   - Edit: court_date
     button: |
+      % if role_in_case != "juror" and role_in_case != "spectator" and role_in_case != "witness" and role_in_case != "victim":
+      **Date and time of first court appearance:**
+      % else:
       **Date and time of court appearance:**
+      % endif
       ${court_date}, ${format_time(court_time)}
-    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim"
+    show if: role_in_case == "juror" or role_in_case == "spectator" or role_in_case == "witness" or role_in_case == "victim" or know_first_date == True
   - Edit: case_number
     button: |
       **Case number:**
