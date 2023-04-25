@@ -15,6 +15,7 @@ include:
 objects:
   - user: ALIndividual
   - other_person: ALIndividual
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
   ilao_easy_form_title = "Interpreter request"
@@ -67,6 +68,7 @@ code: |
     if know_first_date == True:
       court_date
   set_progress(80)
+  trial_court
   case_number
   e_signature
   which_email
@@ -95,7 +97,7 @@ subquestion: |
 
   Once you complete the program, you can download your form and instructions. You should ask the Circuit Clerk for the court how they would like you to submit your interpreter request.
   
-  A translator may not be available immediately after you request one. You may want to submit your interpreter request as soon as possible to make sure the court has time to get an interpreter. Some courts may require advanced notice.
+  **Note:** A translator may not be available immediately after you request one. You may want to submit your interpreter request as soon as possible to make sure the court has time to get an interpreter. Some courts may require advanced notice.
   
   ${ collapse_template(help_example) }  
 
@@ -148,9 +150,9 @@ subquestion: |
   To request an interpreter, you or the person who needs an interpreter must be a:
 
   * Party in the case (a person who brings or defends a lawsuit),
-  * Person who brings or defends a case for a minor or adult disabled person,
-  * Parent or legal guardian of a minor plaintiff, minor defendant, or minor victim,
-  * Parent or legal guardian of an adult disabled plaintiff or defendant,
+  * Person who brings or defends a case for a minor or an adult with a disability,
+  * Parent or guardian of a minor child who is a plaintiff, defendant, or victim,
+  * Parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim,
   * Witness,
   * Victim in the case,
   * Juror (sign language only), or
@@ -167,6 +169,7 @@ subquestion: |
   * Name and contact information of person making request (if different),
   * Role the person needing an interpreter has in the case,
   * Language needed, 
+  * County the court is in
   * Case number, and
   * Court date and time when an interpreter is needed.
   
@@ -246,34 +249,7 @@ fields:
 validation code: |
   if (not showifdef('user.phone_number') and \
       (not showifdef('user.email'))):
-    validation_error(word("You need to provide at least one contact method."), field="user.other_contact_method")
----    
-sets:
-  - other_person.phone_number
-  - other_person.email
-id: other person contact information
-question: |
-  What is ${other_person.name.full(middle='full')}'s phone number and email address?
-subquestion: |
-  This information can help the court contact ${other_person.name.full(middle='full')}.  
-fields:
-  - Phone number: other_person.phone_number
-    datatype: al_international_phone
-    required: False
-  - Email: other_person.email
-    datatype: email
-    required: False
----
-id: your email
-question: |
-  What email address do you want to list on your form?
-subquestion: |
-  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
-  
-  Be sure to check this email daily, otherwise you may miss important information about your case.																									
-fields: 
-  - Email: user.email
-    datatype: email
+    validation_error(word("You need to provide at least one contact method."), field="user.email")
 ---
 id: other person name
 question: |
@@ -326,14 +302,7 @@ fields:
 validation code: |
   if (not showifdef('other_person.phone_number') and \
       (not showifdef('other_person.email'))):
-    validation_error(word("You need to provide at least one contact method."), field="other_person.other_contact_method")
----
-#id: other person phone number
-#question: |
-  #What is ${other_person.name.full(middle='full')}'s phone number?
-#fields:
-  #- Phone number: other_person.phone_number
-    #datatype: al_international_phone
+    validation_error(word("You need to provide at least one contact method."), field="other_person.email")
 ---
 id: include email
 question: |
@@ -343,17 +312,6 @@ subquestion: |
 fields:
   - no label: other_person.include_email_address
     datatype: yesnoradio
----
-id: your email
-question: |
-  What is ${other_person.name.full(middle='full')}'s email address?
-subquestion: |
-  If they do not want you to enter their personal email address, they can create a new email account to get email about the request.
-  
-  They should check this email daily, otherwise they may miss important information about the request.																									
-fields: 
-  - Email: other_person.email
-    datatype: email
 ---
 id: role in case
 question: |
@@ -365,9 +323,9 @@ question: |
 field: role_in_case
 choices:
   - Plaintiff or defendant in the case: party
-  - Person filing for a minor or disabled adult: behalf
+  - Person filing for a minor or an adult with a disability: behalf
   - Parent or guardian of a minor child who is a plaintiff, defendant, or victim: minor guardian
-  - Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim: adult guardian
+  - Parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim: adult guardian
   - Witness: witness
   - Victim: victim
   - Juror (sign language interpreter only): juror
@@ -380,16 +338,16 @@ subquestion: |
   % if role_in_case == "party":
   As ${you_are_or_name_is} a plaintiff or defendant in the case, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "behalf":
-  As ${you_are_or_name_is} a person filing for a minor or disabled adult, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a person filing for a minor or an adult with a disability, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "minor guardian":
   As ${you_are_or_name_is} a parent or guardian of a minor child who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % elif role_in_case == "adult guardian":
-  As ${you_are_or_name_is} a parent or guardian of a disabled adult who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
+  As ${you_are_or_name_is} a parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim, ${you_or_they} will be requesting an interpreter for all court dates.
   % endif
   
-  Do ${you_or_they} when the first date you will need an interpreter is?
+  Do ${you_or_they} know the date and time of the first court date when an interpreter will be needed?
 fields:
   - no label: know_first_date
     datatype: yesnoradio
@@ -534,6 +492,40 @@ fields:
   - Case number: case_number
     required: False
 ---
+id: county
+continue button field: county
+question: |
+  Which county is the court in?
+subquestion: |
+  ${ collapse_template(county_lookup_help) }  
+fields:
+  - no label: trial_court_index
+    code: |
+      court_county_lookup()
+---
+template: county_lookup_help
+subject: |
+  **How do I look up the county?**
+content: |  
+  You can use this [**City-to-County Finder**](https://www.statsamerica.org/CityCountyFinder/) to find the county.
+---
+depends on:
+  - trial_court_index
+code: |
+  if trial_court_index == "-1":
+    trial_court = court_list.as_court('trial_court', 15)
+  else:
+    trial_court = court_list.as_court('trial_court', trial_court_index)
+---
+code: |
+  def court_county_lookup():
+    all_court_counties = court_list._load_courts()['address_county'].items()
+    filtered_courts = [(-1, "Cook")]
+    for court in all_court_counties:
+      if court[1] != "Cook":
+        filtered_courts.append(court)
+    return sorted( filtered_courts, key=lambda y: y[1])
+---
 id: signature
 question: |
   Do you want to add your electronic signature to your form?
@@ -625,7 +617,7 @@ attachment:
           % endif
       - "needer_phone": ${ phone_number_formatted(user.phone_number) if who_needs == "Myself" else phone_number_formatted(other_person.phone_number)}
       - "needer_email": ${which_email}
-      - "case_number": ${case_number}
+      - "case_number": ${case_number + ", "  + end_in_county(trial_court.address.county)}
       - "party": ${ True if role_in_case == "party" else False}
       - "behalf": ${ True if role_in_case == "behalf" else False}
       - "minor_guardian": ${ True if role_in_case == "minor guardian" else False}
@@ -637,8 +629,6 @@ attachment:
       - "first_court_date": |
           % if role_in_case != "witness" and role_in_case != "victim" and role_in_case != "juror" and role_in_case != "spectator" and know_first_date == True:
           First court date: ${court_date} at ${format_time(court_time)}
-          % else:
-          ""
           % endif 
       - "witness_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "witness" else ""}      
       - "victim_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "victim" else ""}
@@ -750,6 +740,8 @@ review:
   - Edit: other_person.include_address
     button: |
       **Do you want to include ${other_person.name.full(middle='full')}'s address?**
+      ${word(yesno(other_person.include_address))}
+    show if: who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
@@ -775,11 +767,11 @@ review:
       % if role_in_case == "party":
       Plaintiff or defendant in the case
       % elif role_in_case == "behalf":
-      Person filing for a minor or disabled adult
+      Person filing for a minor or an adult with a disability
       % elif role_in_case == "minor guardian":
       Parent or guardian of a minor child who is a plaintiff, defendant, or victim
       % elif role_in_case == "adult guardian":
-      Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim
+      Parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim
       % elif role_in_case == "witness":
       Witness
       % elif role_in_case == "victim":
@@ -812,6 +804,13 @@ review:
     button: |
       **Case number:**
       ${case_number}
+  - Edit: 
+      - trial_court_index
+      - recompute:
+        - trial_court
+    button: |
+      **Which county is the case in?:** 
+      ${ end_in_county(trial_court.address.county) }
   - Edit: e_signature
     button: |
       **Do you want to include an e-signature?**
@@ -883,6 +882,8 @@ review:
   - Edit: other_person.include_address
     button: |
       **Do you want to include ${other_person.name.full(middle='full')}'s address?**
+      ${word(yesno(other_person.include_address))}
+    show if: who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
@@ -916,11 +917,11 @@ review:
       % if role_in_case == "party":
       Plaintiff or defendant in the case
       % elif role_in_case == "behalf":
-      Person filing for a minor or disabled adult
+      Person filing for a minor or an adult with a disability
       % elif role_in_case == "minor guardian":
       Parent or guardian of a minor child who is a plaintiff, defendant, or victim
       % elif role_in_case == "adult guardian":
-      Parent or guardian of a disabled adult who is a plaintiff, defendant, or victim
+      Parent or guardian of an adult with a disability who is a plaintiff, defendant, or victim
       % elif role_in_case == "witness":
       Witness
       % elif role_in_case == "victim":
@@ -948,3 +949,10 @@ review:
     button: |
       **Case number:**
       ${case_number}
+  - Edit: 
+      - trial_court_index
+      - recompute:
+        - trial_court
+    button: |
+      **Which county is the case in?:** 
+      ${ end_in_county(trial_court.address.county) }
