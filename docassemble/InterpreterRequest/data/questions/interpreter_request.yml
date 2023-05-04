@@ -501,7 +501,7 @@ subquestion: |
 fields:
   - no label: trial_court_index
     code: |
-      court_county_lookup()
+      ilao_court_county_lookup(court_list)
 ---
 template: county_lookup_help
 subject: |
@@ -516,15 +516,6 @@ code: |
     trial_court = court_list.as_court('trial_court', 15)
   else:
     trial_court = court_list.as_court('trial_court', trial_court_index)
----
-code: |
-  def court_county_lookup():
-    all_court_counties = court_list._load_courts()['address_county'].items()
-    filtered_courts = [(-1, "Cook")]
-    for court in all_court_counties:
-      if court[1] != "Cook":
-        filtered_courts.append(court)
-    return sorted( filtered_courts, key=lambda y: y[1])
 ---
 id: signature
 question: |
@@ -576,8 +567,8 @@ content: |
   [**Illinois Legal Aid Online**](https://www.illinoislegalaid.org)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="Download all forms")
-  - al_court_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="Download all forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="All forms")
+  - al_court_bundle: ALDocumentBundle.using(elements=[instructions, interpreter_request], filename="interpreter_request.pdf", title="All forms")
 ---
 # Handles which, if any, email address is used in the needer's email address field.
 depends on:
