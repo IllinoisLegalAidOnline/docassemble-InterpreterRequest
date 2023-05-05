@@ -608,7 +608,12 @@ attachment:
           % endif
       - "needer_phone": ${ phone_number_formatted(user.phone_number) if who_needs == "Myself" else phone_number_formatted(other_person.phone_number)}
       - "needer_email": ${which_email}
-      - "case_number": ${case_number + ", "  + end_in_county(trial_court.address.county)}
+      - "case_number": |
+          % if case_number != "":
+          ${case_number + ", "  + end_in_county(trial_court.address.county)}
+          % else:
+          ${end_in_county(trial_court.address.county)}
+          % endif
       - "party": ${ True if role_in_case == "party" else False}
       - "behalf": ${ True if role_in_case == "behalf" else False}
       - "minor_guardian": ${ True if role_in_case == "minor guardian" else False}
