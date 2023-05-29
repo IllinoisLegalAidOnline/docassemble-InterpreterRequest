@@ -800,7 +800,11 @@ review:
   - Edit: case_number
     button: |
       **Case number:**
+      % if case_number == "":
+      None
+      % else:
       ${case_number}
+      % endif
   - Edit: 
       - trial_court_index
       - recompute:
@@ -945,7 +949,11 @@ review:
   - Edit: case_number
     button: |
       **Case number:**
+      % if case_number == "":
+      None
+      % else:
       ${case_number}
+      % endif
   - Edit: 
       - trial_court_index
       - recompute:
