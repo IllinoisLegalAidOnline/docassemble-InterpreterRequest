@@ -599,11 +599,11 @@ attachment:
       - "needer_address": |
           % if who_needs == "Myself":
           % if user.include_address == True:
-          ${user.address.on_one_line()}
+          ${user.address.on_one_line(bare=True)}
           % endif
           % else:
           % if other_person.include_address == True:
-          ${other_person.address.on_one_line()}
+          ${other_person.address.on_one_line(bare=True)}
           % endif
           % endif
       - "needer_phone": ${ phone_number_formatted(user.phone_number) if who_needs == "Myself" else phone_number_formatted(other_person.phone_number)}
@@ -632,7 +632,10 @@ attachment:
       - "juror_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "juror" else ""}
       - "spectator_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "spectator" else ""}
       - "helper_name": ${user.name.full(middle='full') if who_needs == "Someone else" else ""}
-      - "helper_address": ${user.address.on_one_line() if who_needs == "Someone else" else ""}
+      - "helper_address": |
+          % if who_needs == "Someone else" and user.include_address == True:
+          ${user.address.on_one_line(bare=True)} 
+          % endif
       - "helper_phone": ${phone_number_formatted(user.phone_number) if who_needs == "Someone else" else ""}
       - "helper_email": ${user.email if who_needs == "Someone else" else ""}
       - "Spanish": ${True if language_needed == "Spanish" and role_in_case != "juror" and role_in_case != "spectator" else False}
@@ -715,16 +718,24 @@ review:
   - Edit: user.address.address
     button: |
       **Your address:**
-      ${user.address.on_one_line()}
+      ${user.address.on_one_line(bare=True)}
     show if: user.include_address
   - Edit: user.phone_number
     button: |
       **Your phone number:**
+      % if phone_number_is_valid(user.phone_number) == True:
       ${phone_number_formatted(user.phone_number)}
+      % else:
+      None entered
+      % endif
   - Edit: user.email
     button: |
       **Your email address:**
+      % if user.email != "":
       ${user.email}
+      % else:
+      None entered
+      % endif
   - Edit: who_needs
     button: |
      **Do you need an interpreter for yourself or someone else?**
@@ -742,17 +753,25 @@ review:
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
-      ${other_person.address.on_one_line()}
+      ${other_person.address.on_one_line(bare=True)}
     show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
+      % if phone_number_is_valid(other_person.phone_number) == True:
       ${phone_number_formatted(other_person.phone_number)}
+      % else:
+      None entered
+      % endif
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
+      % if other_person.email != "":
       ${other_person.email}
+      % else:
+      None entered
+      % endif
     show if: who_needs == "Someone else"
   - Edit: role_in_case
     button: |
@@ -801,7 +820,7 @@ review:
     button: |
       **Case number:**
       % if case_number == "":
-      None
+      None entered
       % else:
       ${case_number}
       % endif
@@ -835,16 +854,24 @@ review:
   - Edit: user.address.address
     button: |
       **Your address:**
-      ${user.address.on_one_line()}
+      ${user.address.on_one_line(bare=True)}
     show if: user.include_address
   - Edit: user.phone_number
     button: |
       **Your phone number:**
+      % if phone_number_is_valid(user.phone_number) == True:
       ${phone_number_formatted(user.phone_number)}
+      % else:
+      None entered
+      % endif
   - Edit: user.email
     button: |
       **Your email address:**
+      % if user.email != "":
       ${user.email}
+      % else:
+      None entered
+      % endif
   - Edit: who_needs
     button: |
      **Do you need an interpreter for yourself or someone else?**
@@ -888,17 +915,25 @@ review:
   - Edit: other_person.address.address
     button: |
       **${other_person.name.full(middle='full')}'s address:**
-      ${other_person.address.on_one_line()}
+      ${other_person.address.on_one_line(bare=True)}
     show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
       **${other_person.name.full(middle='full')}'s phone number:**
+      % if phone_number_is_valid(other_person.phone_number) == True:
       ${phone_number_formatted(other_person.phone_number)}
+      % else:
+      None entered
+      % endif
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
       **${other_person.name.full(middle='full')} email address:**
+      % if other_person.email != "":
       ${other_person.email}
+      % else:
+      None entered
+      % endif
     show if: who_needs == "Someone else"
 ---
 id: review case
@@ -950,7 +985,7 @@ review:
     button: |
       **Case number:**
       % if case_number == "":
-      None
+      None entered
       % else:
       ${case_number}
       % endif
