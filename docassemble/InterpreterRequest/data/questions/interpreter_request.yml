@@ -35,6 +35,7 @@ mandatory: True
 code: |
   nav.set_section('section_intro')
   sees_nav_bar
+  snapshot_start
   set_progress(5)
   how_to_use
   accept_terms
@@ -73,7 +74,36 @@ code: |
   e_signature
   which_email
   nav.set_section('section_download')
+  forms_assembling
+  snapshot_forms
   get_docs_screen
+---
+code: |
+  stuff_to_snapshot = {
+  	'start_time': str(current_datetime().format_datetime()),
+  	'started_interview': True, 
+  	}
+    
+  stuff_to_snapshot['user_zip'] = showifdef('user.address.zip')
+
+  stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
+  
+  stuff_to_snapshot['who_needs'] = showifdef('who_needs') 
+  
+  stuff_to_snapshot['language_needed'] = showifdef('language_needed') 
+  
+  store_variables_snapshot(
+  	data=stuff_to_snapshot, persistent=True
+  	)
+  snapshot_interview_state = True
+---
+code: |
+  snapshot_interview_state
+  snapshot_start = True  
+---
+code: |
+  reconsider('snapshot_interview_state')
+  snapshot_forms = True
 ---
 id: welcome
 question: |
@@ -497,6 +527,17 @@ fields:
   - "Add electronic signature?": e_signature
     datatype: yesnoradio
 ---
+id: forms assembling
+continue button field: forms_assembling
+question: |
+  Almost done
+subquestion: |
+  After you click **Next**, it may take a few moments to finish making your forms.
+  
+  ###### You do not need to refresh your screen. Hang in there!
+  
+  [NEWLINE]
+---
 id: get docs screen
 event: get_docs_screen
 question: |
@@ -806,7 +847,7 @@ review:
       **Do you want to include an e-signature?**
       ${word(yesno(e_signature))}
 ---
-id: review user
+id: user review screen
 event: section_user
 question: |
   About person making request
@@ -856,7 +897,7 @@ review:
       **Do you want to include an e-signature?**
       ${word(yesno(e_signature))}
 ---
-id: review someone
+id: someone review screen
 event: section_someone
 question: |
   About person needing interpreter (optional)
@@ -906,7 +947,7 @@ review:
       % endif
     show if: who_needs == "Someone else"
 ---
-id: review case
+id: case review screen
 event: section_case
 question: |
   Case information
