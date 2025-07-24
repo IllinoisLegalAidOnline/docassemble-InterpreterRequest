@@ -270,14 +270,14 @@ fields:
 ---
 id: include other person address
 question: |
-  Do you want to list ${other_person.name.full(middle='full')}'s address on the form?
+  Do you want to list ${other_person.name_full()}'s address on the form?
 fields:
   - no label: other_person.include_address
     datatype: yesnoradio
 ---
 id: other person address
 question: |
-  What is ${other_person.name.full(middle='full')}'s address?
+  What is ${other_person.name_full()}'s address?
 fields:
   - Street address: other_person.address.address
     address autocomplete: True
@@ -294,9 +294,9 @@ sets:
   - other_person.email
 id: other person contact information
 question: |
-  What is ${other_person.name.full(middle='full')}'s phone number and email address?
+  What is ${other_person.name_full()}'s phone number and email address?
 subquestion: |
-  This information can help the court contact ${other_person.name.full(middle='full')}.
+  This information can help the court contact ${other_person.name_full()}.
 fields:
   - Phone number: other_person.phone_number
     datatype: al_international_phone
@@ -311,7 +311,7 @@ validation code: |
 ---
 id: include email
 question: |
-  Does ${other_person.name.full(middle='full')}'s have an email address?
+  Does ${other_person.name_full()}'s have an email address?
 subquestion: |
   If they have an email address, you must list it so the court can contact them about this request.
 fields:
@@ -323,7 +323,7 @@ question: |
   % if who_needs == "Myself":
   What is your role in this case?
   % else:
-  What is ${other_person.name.full(middle='full')}'s role in this case?
+  What is ${other_person.name_full()}'s role in this case?
   % endif
 field: role_in_case
 choices:
@@ -365,7 +365,7 @@ code: |
     you_are_or_name_is = "you are"
     you_or_they = "you"
   else:
-    you_are_or_name_is = other_person.name.full(middle='full') + " is"
+    you_are_or_name_is = other_person.name_full() + " is"
     you_or_they = "they"
 ---
 # Not certain about the phrasing of this question, this is just pulled from the A2JAuthor interview.
@@ -374,13 +374,13 @@ question: |
   % if who_needs == "Myself":
   Which language will you need?
   % else:
-  Which language will ${other_person.name.full(middle='full')} need?
+  Which language will ${other_person.name_full()} need?
   % endif
 subquestion: |
   % if who_needs == "Myself":
   If the language you need is not in this list, select "Other" and enter the language you need.
   % else:
-  If the language ${other_person.name.full(middle='full')} needs is not in this list, select "Other" and enter the language they need.
+  If the language ${other_person.name_full()} needs is not in this list, select "Other" and enter the language they need.
   % endif
 fields: 
   - Language: language_needed
@@ -450,13 +450,13 @@ question: |
   % if who_needs == "Myself":
   When will you need an interpreter?
   % else:
-  When will ${other_person.name.full(middle='full')} need an interpreter?
+  When will ${other_person.name_full()} need an interpreter?
   % endif
   % else:
   % if who_needs == "Myself":
   When will you first need an interpreter?
   % else:
-  When will ${other_person.name.full(middle='full')} first need an interpreter?
+  When will ${other_person.name_full()} first need an interpreter?
   % endif
   % endif
 subquestion: |
@@ -464,13 +464,13 @@ subquestion: |
   % if who_needs == "Myself":
   Enter the court date and time when you will be in court and need an interpreter.
   % else:
-  Enter the court date and time when ${other_person.name.full(middle='full')} will be in court and need an interpreter.
+  Enter the court date and time when ${other_person.name_full()} will be in court and need an interpreter.
   % endif
   % else:
   % if who_needs == "Myself":
    Enter the first court date and time when you will be in court and need an interpreter.
   % else:
-  Enter the first court date and time when ${other_person.name.full(middle='full')} will be in court and need an interpreter.
+  Enter the first court date and time when ${other_person.name_full()} will be in court and need an interpreter.
   % endif
   % endif
 fields:
@@ -526,7 +526,7 @@ id: signature
 question: |
   Do you want to add your electronic signature to your form?
 subquestion: |
-  The program will put “/s/ ${user.name.full(middle='full')}” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
+  The program will put “/s/ ${user.name_full()}” where you would sign your name so you do not have to sign the forms. The court will accept this as your signature.
 
 fields:
   - "Add electronic signature?": e_signature
@@ -611,7 +611,7 @@ attachment:
     skip undefined: True
     editable: False
     fields:
-      - "needer_name": ${ user.name.full(middle='full') if who_needs == "Myself" else other_person.name.full(middle='full') }
+      - "needer_name": ${ user.name_full() if who_needs == "Myself" else other_person.name_full() }
       - "needer_address": |
           % if who_needs == "Myself":
           % if user.include_address == True:
@@ -647,7 +647,7 @@ attachment:
       - "victim_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "victim" else ""}
       - "juror_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "juror" else ""}
       - "spectator_date": ${ court_date + " at " + format_time(court_time) if role_in_case == "spectator" else ""}
-      - "helper_name": ${user.name.full(middle='full') if who_needs == "Someone else" else ""}
+      - "helper_name": ${user.name_full() if who_needs == "Someone else" else ""}
       - "helper_address": |
           % if who_needs == "Someone else" and user.include_address == True:
           ${user.address.on_one_line(bare=True)} 
@@ -709,8 +709,8 @@ attachment:
       - "other": ${True if language_needed == "Other" and role_in_case != "juror" and role_in_case != "spectator" else False}
       - "other_language": ${ other_language if language_needed == "Other" and role_in_case != "juror" and role_in_case != "spectator" else ""}
       - "signature_date": ${ today() if e_signature == True else ""}
-      - "e_signature": ${user.name.full(middle='full') if e_signature == True else ""}
-      - "signer_name": ${user.name.full(middle='full')}
+      - "e_signature": ${user.name_full() if e_signature == True else ""}
+      - "signer_name": ${user.name_full()}
 ---
 objects:
   - interpreter_request: ALDocument.using(title="Interpreter request", filename="interpreter_request", enabled=True, has_addendum=False)
@@ -726,7 +726,7 @@ review:
   - Edit: user.name.first
     button: |
       **Your name:**
-      ${user.name.full(middle='full')}    
+      ${user.name_full()}    
   - Edit: user.include_address
     button: |
       **Do you want to include your address?**
@@ -759,21 +759,21 @@ review:
   - Edit: other_person.name.first
     button: |
       **Who needs an interpreter?**
-      ${other_person.name.full(middle='full')}
+      ${other_person.name_full()}
     show if: who_needs == "Someone else"
   - Edit: other_person.include_address
     button: |
-      **Do you want to include ${other_person.name.full(middle='full')}'s address?**
+      **Do you want to include ${other_person.name_full()}'s address?**
       ${word(yesno(other_person.include_address))}
     show if: who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
-      **${other_person.name.full(middle='full')}'s address:**
+      **${other_person.name_full()}'s address:**
       ${other_person.address.on_one_line(bare=True)}
     show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
-      **${other_person.name.full(middle='full')}'s phone number:**
+      **${other_person.name_full()}'s phone number:**
       % if phone_number_is_valid(other_person.phone_number) == True:
       ${phone_number_formatted(other_person.phone_number)}
       % else:
@@ -782,7 +782,7 @@ review:
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
-      **${other_person.name.full(middle='full')} email address:**
+      **${other_person.name_full()} email address:**
       % if other_person.email != "":
       ${other_person.email}
       % else:
@@ -794,7 +794,7 @@ review:
       % if who_needs == "Myself":
       **Your role in the case:**
       % else:
-      **${other_person.name.full(middle='full')}'s role in the case:**
+      **${other_person.name_full()}'s role in the case:**
       % endif
       % if role_in_case == "party":
       Plaintiff or defendant in the case
@@ -862,7 +862,7 @@ review:
   - Edit: user.name.first
     button: |
       **Your name:**
-      ${user.name.full(middle='full')}
+      ${user.name_full()}
   - Edit: user.include_address
     button: |
       **Do you want to include your address?**
@@ -916,7 +916,7 @@ review:
   - Edit: other_person.name.first
     button: |
       **Who needs an interpreter?**
-      ${other_person.name.full(middle='full')}
+      ${other_person.name_full()}
     show if: who_needs == "Someone else"
   - Edit: language_needed
     button: |
@@ -925,17 +925,17 @@ review:
     show if: role_in_case != "juror" and role_in_case != "spectator" and who_needs == "Someone else"
   - Edit: other_person.include_address
     button: |
-      **Do you want to include ${other_person.name.full(middle='full')}'s address?**
+      **Do you want to include ${other_person.name_full()}'s address?**
       ${word(yesno(other_person.include_address))}
     show if: who_needs == "Someone else"
   - Edit: other_person.address.address
     button: |
-      **${other_person.name.full(middle='full')}'s address:**
+      **${other_person.name_full()}'s address:**
       ${other_person.address.on_one_line(bare=True)}
     show if: who_needs == "Someone else" and other_person.include_address == True
   - Edit: other_person.phone_number
     button: |
-      **${other_person.name.full(middle='full')}'s phone number:**
+      **${other_person.name_full()}'s phone number:**
       % if phone_number_is_valid(other_person.phone_number) == True:
       ${phone_number_formatted(other_person.phone_number)}
       % else:
@@ -944,7 +944,7 @@ review:
     show if: who_needs == "Someone else"
   - Edit: other_person.email
     button: |
-      **${other_person.name.full(middle='full')} email address:**
+      **${other_person.name_full()} email address:**
       % if other_person.email != "":
       ${other_person.email}
       % else:
@@ -964,7 +964,7 @@ review:
       % if who_needs == "Myself":
       **Your role in the case:**
       % else:
-      **${other_person.name.full(middle='full')}'s role in the case:**
+      **${other_person.name_full()}'s role in the case:**
       % endif
       % if role_in_case == "party":
       Plaintiff or defendant in the case
