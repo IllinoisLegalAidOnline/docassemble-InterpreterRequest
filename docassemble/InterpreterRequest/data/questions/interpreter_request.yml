@@ -73,6 +73,7 @@ code: |
   case_number
   e_signature
   which_email
+  next_steps
   nav.set_section('section_download')
   forms_assembling
   snapshot_forms
@@ -116,9 +117,11 @@ question: |
 subquestion: |
   Welcome to Illinois Legal Aid Online's **Interpreter request** program.
 
-  This program will make a form to request an interpreter to help you or someone else understand what is being said in court.
+  This program will make a form to request an interpreter to help you or someone else understand what is being said in court. Courts provide interpeters for people who speak little or no English, as well as people who are Deaf, Deafblind, hard of hearing, or have speech disabilities.
 
   The form you create with this program can only be used in Illinois.
+
+  To learn more, read ILAO's article [**Requesting an interpreter for your court case**](https://www.illinoislegalaid.org/node/103701).
 field: sees_nav_bar
 ---
 id: instructions
@@ -162,7 +165,18 @@ subquestion: |
   * Victim in the case,
   * Juror (sign language only), or
   * Spectator (sign language only).
+
+  ${collapse_template(admin_hearing)}
 continue button field: who_qualifies
+---
+template: admin_hearing
+subject: |
+  **What if I need an interpreter for an administrative hearing?**
+content: |
+  Illinois law requires state agencies to provide interpreters, but the steps for requesting them are different than requesting an interpreter for a court case. To learn more, read ILAO's article about your [**right to an interpreter during administrative hearings**](https://www.illinoislegalaid.org/node/187161). 
+
+  This program only makes an interpreter request for court cases. If you are having a trouble getting a state agency to provide language services, you may want to talk with a lawyer to discuss your options. Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+
 ---
 id: needed information
 question: |
@@ -485,7 +499,7 @@ id: disability services reminder
 question: |
   Note about American Sign Language
 subquestion: |
-  Some courts may have a separate system for requesting an American Sign Language interpreter. You may want to contact your court to see if they have their own request process.
+  Some courts may have a separate system for requesting an American Sign Language interpreter. You may want to contact your court to see if they have their own request process. To learn more, read ILAO's article on [**Legal resources in American Sign Language**](https://www.illinoislegalaid.org/node/184436).
 continue button field: disability_reminder
 ---
 id: case number
@@ -531,6 +545,51 @@ subquestion: |
 fields:
   - "Add electronic signature?": e_signature
     datatype: yesnoradio
+---
+id: next steps
+continue button field: next_steps
+question: |
+  Next steps
+subquestion: |
+  % if who_needs == "Myself":
+  After you download your interpreter request, sign it if you have not added your e-signature. You can give your completed form to:
+
+  * The Office of Interpreter Services, if your court has one,
+  * The circuit court clerk’s office, or
+  * The judge or court staff handling your case.
+
+  Arrive early to your court date and tell security or the court clerk that you requested an interpreter. If no interpreter is present, the judge may postpone the hearing.
+
+  Interpreters cannot give you legal advice or explain legal terms. They can only interpret what is said exactly as communicated by you or others in the court proceeding. When using an interpreter, you should:
+
+  * Speak directly to the judge, not to the interpreter.
+  * Pause to allow for interpretation, then continue speaking where you left off.
+  * Speak in short sentences and avoid slang or jokes, which may not translate clearly.
+  * Tell the judge right away if you don’t understand the interpreter or if you think there’s a mistake.
+
+  If you believe you did not receive effective language assistance you can [**submit a grievance**](https://www.illinoiscourts.gov/public/find-a-language-interpreter/interpreter-grievance/).
+
+  Read the instructions you download for more information.
+  % else:
+  After you download your interpreter request, ${other_person.name_full()} should sign it. They can give the completed form to:
+
+  * The Office of Interpreter Services, if the court has one,
+  * The circuit court clerk’s office, or
+  * The judge or court staff handling their case.
+
+  ${other_person.name_full()} should arrive early to their court date and tell security or the court clerk that they requested an interpreter. If no interpreter is present, the judge may postpone the hearing.
+
+  Interpreters cannot give legal advice or explain legal terms. They can only interpret what is said exactly as communicated by ${other_person.name_full()} or others in the court proceeding. When using an interpreter, they should:
+
+  * Speak directly to the judge, not to the interpreter.
+  * Pause to allow for interpretation, then continue speaking where they left off.
+  * Speak in short sentences and avoid slang or jokes, which may not translate clearly.
+  * Tell the judge right away if they don’t understand the interpreter or if they think there’s a mistake.
+
+   If ${other_person.name_full()} believes theydid not receive effective language assistance they can [**submit a grievance**](https://www.illinoiscourts.gov/public/find-a-language-interpreter/interpreter-grievance/).
+
+  Read the instructions you download for more information.
+  % endif
 ---
 id: forms assembling
 continue button field: forms_assembling
