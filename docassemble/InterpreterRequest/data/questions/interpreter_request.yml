@@ -1053,5 +1053,5 @@ review:
       % endif
   - Edit: filing_county
     button: |
-      **Which county is the case in?:** 
+      **Which county is the case in?** 
       ${ end_in_county(filing_county) }
