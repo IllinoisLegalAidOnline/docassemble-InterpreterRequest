@@ -1,7 +1,7 @@
 metadata:
   title: Interpreter request
   short title: Interpreter request
-  comment:  This program will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
+  comment:  This Easy Form will help you prepare forms to request an interpreter to help you or someone else understand what is being said in court.
   authors:
     - Vivian McNaughton
     - Matt Newsted
@@ -15,7 +15,6 @@ include:
 objects:
   - user: ALIndividual
   - other_person: ALIndividual
-  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
   ilao_easy_form_title = "Interpreter request"
@@ -69,7 +68,7 @@ code: |
     if know_first_date == True:
       court_date
   set_progress(80)
-  trial_court
+  filing_county
   case_number
   e_signature
   which_email
@@ -121,7 +120,7 @@ subquestion: |
 
   The form you create with this program can only be used in Illinois.
 
-  To learn more, read ILAO's article [**Requesting an interpreter for your court case**](https://www.illinoislegalaid.org/node/103701).
+  To learn more, see ILAO's article on [**requesting an interpreter for your court case**](https://www.illinoislegalaid.org/node/103701).
 field: sees_nav_bar
 ---
 id: instructions
@@ -173,7 +172,7 @@ template: admin_hearing
 subject: |
   **What if I need an interpreter for an administrative hearing?**
 content: |
-  Illinois law requires state agencies to provide interpreters, but the steps for requesting them are different than requesting an interpreter for a court case. To learn more, read ILAO's article about your [**right to an interpreter during administrative hearings**](https://www.illinoislegalaid.org/node/187161). 
+  Illinois law requires state agencies to provide interpreters, but the steps for requesting them are different than requesting an interpreter for a court case. To learn more, see ILAO's article on your [**right to an interpreter during administrative hearings**](https://www.illinoislegalaid.org/node/187161). 
 
   This program only makes an interpreter request for court cases. If you are having a trouble getting a state agency to provide language services, you may want to talk with a lawyer to discuss your options. Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
 
@@ -499,7 +498,7 @@ id: disability services reminder
 question: |
   Note about American Sign Language
 subquestion: |
-  Some courts may have a separate system for requesting an American Sign Language interpreter. You may want to contact your court to see if they have their own request process. To learn more, read ILAO's article on [**Legal resources in American Sign Language**](https://www.illinoislegalaid.org/node/184436).
+  Some courts may have a separate system for requesting an American Sign Language interpreter. You may want to contact your court to see if they have their own request process. To learn more, see ILAO's article on [**Legal resources in American Sign Language (ASL)**](https://www.illinoislegalaid.org/node/184436).
 continue button field: disability_reminder
 ---
 id: case number
@@ -512,29 +511,20 @@ fields:
     required: False
 ---
 id: county
-continue button field: county
 question: |
   Which county is the court in?
 subquestion: |
   ${ collapse_template(county_lookup_help) }  
 fields:
-  - no label: trial_court_index
+  - County: filing_county
     code: |
-      ilao_court_county_lookup(court_list)
+      il_county_list
 ---
 template: county_lookup_help
 subject: |
   **How do I look up the county?**
 content: |  
   You can use this [**City-to-County Finder**](https://www.statsamerica.org/CityCountyFinder/) to find the county.
----
-depends on:
-  - trial_court_index
-code: |
-  if trial_court_index == "-1":
-    trial_court = court_list.as_court('trial_court', 15)
-  else:
-    trial_court = court_list.as_court('trial_court', trial_court_index)
 ---
 id: signature
 question: |
@@ -689,7 +679,7 @@ attachment:
           % else:
           ${case_number}
           % endif
-      - "court_county": ${end_in_county(trial_court.address.county)}
+      - "court_county": ${end_in_county(filing_county)}
       - "party": ${ True if role_in_case == "party" else False}
       - "behalf": ${ True if role_in_case == "behalf" else False}
       - "minor_guardian": ${ True if role_in_case == "minor guardian" else False}
@@ -899,13 +889,10 @@ review:
       % else:
       ${case_number}
       % endif
-  - Edit: 
-      - trial_court_index
-      - recompute:
-        - trial_court
+  - Edit: filing_county
     button: |
-      **Which county is the case in?:** 
-      ${ end_in_county(trial_court.address.county) }
+      **Which county is the case in?** 
+      ${ end_in_county(filing_county) }
   - Edit: e_signature
     button: |
       **Do you want to include an e-signature?**
@@ -1064,10 +1051,7 @@ review:
       % else:
       ${case_number}
       % endif
-  - Edit: 
-      - trial_court_index
-      - recompute:
-        - trial_court
+  - Edit: filing_county
     button: |
-      **Which county is the case in?:** 
-      ${ end_in_county(trial_court.address.county) }
+      **Which county is the case in?** 
+      ${ end_in_county(filing_county) }
